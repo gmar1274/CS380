@@ -90,10 +90,10 @@ public class ServerGUI extends JFrame implements ActionListener, WindowListener 
 		tPortNumber.setEditable(false);
 	}
 	// entry point to start the Server
-	public static void main(String[] arg) {
-		// start server default port 23
-		new ServerGUI(23);
-	}
+	// public static void main(String[] arg) {
+	// // start server default port 23
+	// new ServerGUI(23);
+	// }
 	/*
 	 * If the user click the X button to close the application connection with the server will be released and port freed.
 	 */
@@ -121,8 +121,8 @@ public class ServerGUI extends JFrame implements ActionListener, WindowListener 
 	
 
 		public void run() {
-			if(inBG)server.startInBackground();
-			else server.start();
+			if(inBG)server.startServer();
+		//	else server.start();
 			connectButton.setText("Start");
 			tPortNumber.setEditable(true);
 			if(inBG)appendEvent("Server crashed.");

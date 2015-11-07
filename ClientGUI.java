@@ -1,6 +1,8 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.BufferedInputStream;
+import java.io.File;
 
 /*
  * The Client with its GUI
@@ -14,7 +16,7 @@ public class ClientGUI extends JFrame implements ActionListener {
 	// to hold the server address an the port number
 	private JTextField			textFieldServer, textFieldPort;
 	// to Logout and get the list of the users
-	private JButton				login, logout, whoIsIn;
+	private JButton				login, logout, uploadFile;
 	// for the chat room
 	private JTextArea			textArea;
 	// if it is for connection
@@ -63,13 +65,13 @@ public class ClientGUI extends JFrame implements ActionListener {
 		logout = new JButton("Logout");
 		logout.addActionListener(this);
 		logout.setEnabled(false); // you have to login before being able to logout
-		whoIsIn = new JButton("Who's connected");
-		whoIsIn.addActionListener(this);
-		whoIsIn.setEnabled(false); // you have to login before being able to Who is in
+		uploadFile = new JButton("Upload File");
+		uploadFile.addActionListener(this);
+		uploadFile.setEnabled(false); // you have to login before being able to Who is in
 		JPanel southPanel = new JPanel();
 		southPanel.add(login);
 		southPanel.add(logout);
-		southPanel.add(whoIsIn);
+		southPanel.add(uploadFile);
 		add(southPanel, BorderLayout.SOUTH);
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		setSize(550, 500);
@@ -87,7 +89,7 @@ public class ClientGUI extends JFrame implements ActionListener {
 	void connectionFailed() {
 		login.setEnabled(true);
 		logout.setEnabled(false);
-		whoIsIn.setEnabled(false);
+		uploadFile.setEnabled(false);
 		label.setText("Enter your username below");
 		textField.setText("Anonymous");
 		// reset port number and host name as a construction time
@@ -98,18 +100,20 @@ public class ClientGUI extends JFrame implements ActionListener {
 		textField.removeActionListener(this);
 		connected = false;
 	}
+	
 	/*
 	 * Button or JTextField clicked
 	 */
 	public void actionPerformed(ActionEvent e) {
-		Object o = e.getSource();
-		if (o == logout) {
-			client.sendMessage(new NetworkMessage(NetworkMessage.LOGOUT, ""));
+		Object object = e.getSource();
+		if (object == logout) {
+			client.sendMessage(new NetworkMessage(NetworkMessage.LOGOUT));
 			return;
 		}
 		// if it the who is in button
-		if (o == whoIsIn) {
-			client.sendMessage(new NetworkMessage(NetworkMessage.WHOISIN, ""));
+		if (object == uploadFile) {
+			//client.sendMessage(new NetworkMessage(NetworkMessage.UPLOADFILE, ""));
+			client.uploadFile();
 			return;
 		}
 		// ok it is coming from the JTextField
@@ -118,7 +122,7 @@ public class ClientGUI extends JFrame implements ActionListener {
 			textField.setText("");
 			return;
 		}
-		if (o == login) {
+		if (object == login) {
 			// ok it is a connection request
 			String username = textField.getText().trim();
 			// empty username ignore it
@@ -136,7 +140,8 @@ public class ClientGUI extends JFrame implements ActionListener {
 				return;
 			}
 			// try creating a new Client with GUI
-			client = new Client(server, this.portNumber, username, this);
+			client = new Client(server, this.portNumber, username, this,3);
+		
 			// test if we can start the Client
 			if (!client.start()) return;
 			textField.setText("");
@@ -146,16 +151,12 @@ public class ClientGUI extends JFrame implements ActionListener {
 			login.setEnabled(false);
 			// enable the 2 buttons
 			logout.setEnabled(true);
-			whoIsIn.setEnabled(true);
+			uploadFile.setEnabled(true);
 			// disable the Server and Port JTextField
 			textFieldServer.setEditable(false);
 			textFieldPort.setEditable(false);
 			// Action listener for when the user enter a message
 			textField.addActionListener(this);
 		}
-	}
-	// to start the whole thing the server
-	public static void main(String[] args) {
-		new ClientGUI("localhost", 23);
 	}
 }

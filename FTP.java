@@ -71,89 +71,16 @@ public class FTP extends JFrame {
 			this.add(server);
 			this.repaint();
 		}
-		private void uploadFile() {
-			try {
-				JOptionPane.showMessageDialog(null, "Select your file to upload");
-				String fileName = null;
-				JFileChooser fc = new JFileChooser();
-				if (fc.showSaveDialog(null) != JFileChooser.CANCEL_OPTION) fileName = fc.getSelectedFile().getAbsolutePath();
-				else return;
-				File f = new File(fileName);
-				System.out.println(fileName);
-				// openConnections();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-		// private void openConnections() {
-		// host = "localhost";
-		// portNumber = Integer.parseInt(JOptionPane.showInputDialog("Port number: "));
-		// Thread thread = new Thread() {
-		// public void run() {
-		// server(host, password, portNumber);
-		// }
-		// };
-		// thread.start();
-		// client();
-		// }
-		// private void client() {
-		// try {} catch (Exception e) {
-		// client();
-		// }
-		// try {
-		// while (true) {
-		// Socket socket = new Socket(host, portNumber);
-		// text.setText(text.getText() + "\nCreating socket to '" + host + "' on port " + portNumber);
-		// BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-		// PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-		// text.setText(text.getText() + "\nServer says:" + br.readLine());
-		// BufferedReader userInputBR = new BufferedReader(new InputStreamReader(System.in));
-		// String userInput = userInputBR.readLine();
-		// out.println(userInput);
-		// text.setText(text.getText() + "\nserver says:" + br.readLine());
-		// if ("exit".equalsIgnoreCase(userInput)) {
-		// socket.close();
-		// break;
-		// }
-		// }
-		// } catch (Exception e) {
-		// e.printStackTrace();
-		// }
-		// }
-		// private void server(String host, String password, int portNumber) {
-		// text.setText(text.getText() + "\nCreating server socket on port " + portNumber);
-		// ServerSocket serverSocket;
-		// try {
-		// serverSocket = new ServerSocket(portNumber);
-		// while (true) {
-		// frame.add(text);
-		// frame.repaint();
-		// Socket socket = serverSocket.accept();
-		// OutputStream os = socket.getOutputStream();
-		// PrintWriter pw = new PrintWriter(os, true);
-		// text.setText(text.getText() + "\nWhat's you name?");
-		// BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-		// String str = br.readLine();
-		// text.setText(text.getText() + "\nHello, " + str);
-		// pw.close();
-		// socket.close();
-		// text.setText(text.getText() + "\nJust said hello to:" + str);
-		// }
-		// } catch (Exception e) {
-		// e.printStackTrace();
-		// }
-		// }
 		public void actionPerformed(ActionEvent e) {
-			// uploadFile();
 			if (e.getSource() == this.client) {
 				this.frame.dispose();
-				ClientGUI c = new ClientGUI("localhost", 23);
-				Thread t2 = new Thread() {
+				ClientGUI clientGUI = new ClientGUI("localhost", 23);//default value
+				Thread serverThread = new Thread() {
 					public void start() {
-						new ServerGUI(23,false);
+						new ServerGUI(23, false);//default value will be changed if user decides to change it in the clintGUI class
 					}
 				};
-				t2.start();
+				serverThread.start();
 			} else if (e.getSource() == this.server) {
 				// act as reciever
 			}

@@ -8,16 +8,15 @@ import java.util.*;
  */
 public class Server {
 	// a unique ID for each connection
-	private static int			uniqueId;
+	private static int				uniqueId;
 	// an ArrayList to keep the list of the Client
-	private ArrayList<CThread>	clientThreadArrayList;
-	private ServerGUI			serverGUI;
+	private ArrayList<ClientThread>	clientThreadArrayList;
+	private ServerGUI				serverGUI;
 	// to display time
-	private SimpleDateFormat	sdateFormat;
+	private SimpleDateFormat		sdateFormat;
 	// the port number to listen for connection
-	private int					port;
-	// the boolean that will be turned of to stop the server
-	private boolean				keepGoing;
+	private int						port;
+	private boolean					keepGoing;
 	/*
 	 * server constructor that receive the port to listen to for connection as parameter in console
 	 */
@@ -32,100 +31,101 @@ public class Server {
 		// to display hh:mm:ss
 		sdateFormat = new SimpleDateFormat("HH:mm:ss");
 		// ArrayList for the Client list
-		clientThreadArrayList = new ArrayList<CThread>();
+		clientThreadArrayList = new ArrayList<ClientThread>();
 	}
-	public void startInBackground() {
+	/**
+	* MAIN LOOP CONNECTION FOR THE SERVER.
+	*
+	**/
+	public void startServer() {
 		keepGoing = true;
 		/* create socket server and wait for connection requests */
 		try {
 			// the socket used by the server
 			ServerSocket serverSocket = new ServerSocket(port);
 			// infinite loop to wait for connections
-			while (keepGoing) {
+			// while (keepGoing) {
+			while (true) {
 				Socket socket = serverSocket.accept(); // accept connection
 				if (!keepGoing) break;
-				CThread t = new CThread(socket); // make a thread of it
-				clientThreadArrayList.add(t); // save it in the ArrayList
-				t.start();
+				ClientThread client = new ClientThread(socket); // make a thread of it
+				clientThreadArrayList.add(client); // save it in the ArrayList
+				client.start();
 			}
 			// I was asked to stop
 			try {
-				serverSocket.close();
-				for ( int i = 0 ; i < clientThreadArrayList.size() ; ++i) {
-					CThread tc = clientThreadArrayList.get(i);
-					try {
-						tc.sInput.close();
-						tc.sOutput.close();
-						tc.socket.close();
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-				}
-			} catch (Exception e) {e.printStackTrace();}
-		}
-		// something went bad
-		catch (IOException e) {
-			String msg = sdateFormat.format(new Date()) + " Exception on new ServerSocket: " + e;
-			display(msg);
-		}
-	}
-	public void start() {
-		keepGoing = true;
-		/* create socket server and wait for connection requests */
-		try {
-			// the socket used by the server
-			ServerSocket serverSocket = new ServerSocket(port);
-			// infinite loop to wait for connections
-			while (keepGoing) {
-				// format message saying we are waiting
-				display("Server waiting for Clients on port " + port + ".");
-				Socket socket = serverSocket.accept(); // accept connection
-				// if I was asked to stop
-				if (!keepGoing) break;
-				CThread t = new CThread(socket); // make a thread of it
-				clientThreadArrayList.add(t); // save it in the ArrayList
-				t.start();
-			}
-			// I was asked to stop
-			try {
-				serverSocket.close();
-				for ( int i = 0 ; i < clientThreadArrayList.size() ; ++i) {
-					CThread tc = clientThreadArrayList.get(i);
-					try {
-						tc.sInput.close();
-						tc.sOutput.close();
-						tc.socket.close();
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-				}
+				disconnectClients(serverSocket);
 			} catch (Exception e) {
-				display("Exception closing the server and clients: " + e);
+				e.printStackTrace();
 			}
 		}
 		// something went bad
 		catch (IOException e) {
 			String msg = sdateFormat.format(new Date()) + " Exception on new ServerSocket: " + e;
-			display(msg);
+			displayToServerScreen(msg);
+		}
+	}
+	// public void start() {
+	// keepGoing = true;
+	// /* create socket server and wait for connection requests */
+	// try {
+	// // the socket used by the server
+	// ServerSocket serverSocket = new ServerSocket(port);
+	// // infinite loop to wait for connections
+	// while (keepGoing) {
+	// // format message saying we are waiting
+	// display("Server waiting for Clients on port " + port + ".");
+	// Socket socket = serverSocket.accept(); // accept connection
+	// // if I was asked to stop
+	// if (!keepGoing) break;
+	// ClientThread client = new ClientThread(socket); // make a thread of it
+	// clientThreadArrayList.add(client); // save it in the ArrayList
+	// client.start();
+	// }
+	// disconnectClients(serverSocket);
+	// }
+	// // something went bad
+	// catch (IOException e) {
+	// String msg = sdateFormat.format(new Date()) + " Exception on new ServerSocket: " + e;
+	// display(msg);
+	// }
+	// }
+	private void disconnectClients(ServerSocket serverSocket) {
+		try {
+			serverSocket.close();
+			for ( int i = 0 ; i < clientThreadArrayList.size() ; ++i) {
+				ClientThread ct = clientThreadArrayList.get(i);
+				try {
+					ct.sInput.close();
+					ct.sOutput.close();
+					ct.socket.close();
+					displayToServerScreen("Server disconnceted with: " + ct.getName());
+				} catch (Exception e) {
+					displayToServerScreen("Exception closing the server and clients: " + e);
+				}
+			}
+		} catch (Exception ee) {
+			displayToServerScreen("" + ee);
 		}
 	}
 	/*
 	 * For the GUI to stop the server
 	 */
 	protected void stop() {
+		System.out.println("STOP");
 		keepGoing = false;
 		// connect to myself as Client to exit statement
 		// Socket socket = serverSocket.accept();
-		try {
-			new Socket("localhost", port);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+//		 try {
+//		 new Socket("localhost", port);
+//		 } catch (Exception e) {
+//		 e.printStackTrace();
+//		 }
 	}
 	/*
 	 * Display an event (not a message) to the console or the GUI
 	 */
-	private void display(String msg) {
+	public void displayToServerScreen(String msg) {
 		String time = sdateFormat.format(new Date()) + " " + msg;
 		if (serverGUI == null) System.out.println(time);
 		else serverGUI.appendEvent(time);
@@ -134,7 +134,7 @@ public class Server {
 	 * to broadcast a message to all Clients
 	 */
 	private synchronized void broadcast(String message) {
-		// add HH:mm:ss to the message
+		// // add HH:mm:ss to the message
 		String time = sdateFormat.format(new Date());
 		String messageLf = time + " " + message;
 		// display message on console or GUI
@@ -143,11 +143,11 @@ public class Server {
 		// we loop in reverse order in case we would have to remove a Client
 		// because it has disconnected
 		for ( int i = clientThreadArrayList.size() - 1 ; i >= 0 ; --i) {
-			CThread ct = clientThreadArrayList.get(i);
+			ClientThread ct = clientThreadArrayList.get(i);
 			// try to write to the Client if it fails remove it from the list
-			if (!ct.writeMsg(messageLf)) {
+			if (!ct.writeToClientScreen(messageLf)) {
 				clientThreadArrayList.remove(i);
-				display("\nDisconnected Client " + ct.username + " removed from list.");
+				displayToServerScreen("\nDisconnected Client " + ct.username + " removed from list.");
 			}
 		}
 	}
@@ -155,7 +155,7 @@ public class Server {
 	synchronized void remove(int id) {
 		// scan the array list until we found the Id
 		for ( int i = 0 ; i < clientThreadArrayList.size() ; ++i) {
-			CThread ct = clientThreadArrayList.get(i);
+			ClientThread ct = clientThreadArrayList.get(i);
 			// found it
 			if (ct.id == id) {
 				clientThreadArrayList.remove(i);
@@ -167,41 +167,41 @@ public class Server {
 	 * To run as a console application just open a console window and: &gt; java Server &gt; java Server portNumber If the port number is not specified 1500 is
 	 * used
 	 */
-	public static void main(String[] args) {
-		// start server on port 23 unless a PortNumber is specified
-		int portNumber = 23;
-		switch (args.length) {
-			case 1:
-				try {
-					portNumber = Integer.parseInt(args[0]);
-				} catch (Exception e) {
-					System.out.println("Invalid port number.");
-					System.out.println("Usage is: java Server portNumber");
-					return;
-				}
-			case 0:
-				break;
-			default:
-				System.out.println("Usage is: java Server portNumber");
-				return;
-		}
-		// create a server object and start it
-		Server server = new Server(portNumber);
-		server.start();
-	}
+	// public static void main(String[] args) {
+	// // start server on port 23 unless a PortNumber is specified
+	// int portNumber = 23;
+	// switch (args.length) {
+	// case 1:
+	// try {
+	// portNumber = Integer.parseInt(args[0]);
+	// } catch (Exception e) {
+	// System.out.println("Invalid port number.");
+	// System.out.println("Usage is: java Server portNumber");
+	// return;
+	// }
+	// case 0:
+	// break;
+	// default:
+	// System.out.println("Usage is: java Server portNumber");
+	// return;
+	// }
+	// // create a server object and start it
+	// Server server = new Server(portNumber);
+	// server.start();
+	// }
 	/** One instance of this thread will run for each client */
-	public class CThread extends Thread {
+	public class ClientThread extends Thread {
 		// the socket where to listen/talk
-		Socket				socket;
-		ObjectInputStream	sInput;
-		ObjectOutputStream	sOutput;
-		int					id;
-		String				username;
-		NetworkMessage		cm;
+		private Socket				socket;
+		private ObjectInputStream	sInput;
+		private ObjectOutputStream	sOutput;
+		private int					id;
+		private String				username;
+		private NetworkMessage		networkMessage;
 		// the date it connected
-		String				date;
-		// Constructore
-		CThread(Socket socket) {
+		private String				date;
+		// Constructor
+		ClientThread(Socket socket) {
 			// a unique id
 			id = ++uniqueId;
 			this.socket = socket;
@@ -211,10 +211,10 @@ public class Server {
 				sOutput = new ObjectOutputStream(socket.getOutputStream());
 				sInput = new ObjectInputStream(socket.getInputStream());
 				username = (String) sInput.readObject();
-				display(username + " just connected.");
-				writeMsg("Server says hello " + username + "!!!");
+				displayToServerScreen(username + " just connected.");
+				writeToClientScreen("Server says: hello " + username + "!!!");
 			} catch (IOException e) {
-				display("Exception creating new Input/output Streams: " + e);
+				displayToServerScreen("Exception creating new Input/output Streams: " + e);
 				return;
 			} catch (ClassNotFoundException e) {
 				e.printStackTrace();
@@ -222,44 +222,39 @@ public class Server {
 			date = new Date().toString();
 		}
 		public void run() {
-			// to loop until LOGOUT
-			boolean keepGoing = true;
-			while (keepGoing) {
-				// read a String (which is an object)
+			listenForClients();
+		}
+		public void listenForClients() {// to loop until LOGOUT
+			while (true) {
 				try {
-					cm = (NetworkMessage) sInput.readObject();
+					networkMessage = (NetworkMessage) sInput.readObject();
 				} catch (IOException e) {
-					display(username + "Exception reading Streams: " + e);
+					displayToServerScreen(username + " File transfer was unsuccesful: " + e);
 					break;
 				} catch (ClassNotFoundException e2) {
 					break;
 				}
-				String message = cm.getMessage();
+				// //String message = cm.getMessage();
 				// Switch on the type of message receive
-				switch (cm.getType()) {
+				switch (networkMessage.getType()) {
 					case NetworkMessage.MESSAGE:
-						broadcast(username + ": " + message);
+						broadcast(username + ": " + networkMessage.getMessage());
 						break;
 					case NetworkMessage.LOGOUT:
-						display(username + " disconnected.");
-						keepGoing = false;
-						break;
-					case NetworkMessage.WHOISIN:
-						writeMsg("List of the users connected at " + sdateFormat.format(new Date()));
-						// scan al the users connected
-						for ( int i = 0 ; i < clientThreadArrayList.size() ; ++i) {
-							CThread ct = clientThreadArrayList.get(i);
-							writeMsg((i + 1) + ") " + ct.username + " since " + ct.date);
-						}
+						displayToServerScreen(username + " disconnected.");
+						this.closeStreams();
+						
+						return;
+					case NetworkMessage.UPLOADFILE:
+						displayToServerScreen(Arrays.toString(networkMessage.getByteArray()));
+						writeToClientScreen(sdateFormat.format(new Date()) + " File successfully transfered.");
 						break;
 				}
 			}
-			remove(id);
-			close();
+			closeStreams();
 		}
 		// try to close everything
-		private void close() {
-			// try to close the connection
+		private void closeStreams() {
 			try {
 				if (sOutput != null) sOutput.close();
 			} catch (Exception e) {}
@@ -275,10 +270,10 @@ public class Server {
 		/*
 		 * Write a String to the Client output stream
 		 */
-		private boolean writeMsg(String msg) {
+		private boolean writeToClientScreen(String msg) {
 			// if Client is still connected send the message to it
 			if (!socket.isConnected()) {
-				close();
+				closeStreams();
 				return false;
 			}
 			// write the message to the stream
@@ -287,8 +282,8 @@ public class Server {
 			}
 			// if an error occurs, do not abort just inform the user
 			catch (IOException e) {
-				display("Error sending message to " + username);
-				display(e.toString());
+				displayToServerScreen("Error sending message to " + username);
+				displayToServerScreen(e.toString());
 			}
 			return true;
 		}

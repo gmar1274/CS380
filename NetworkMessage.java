@@ -7,19 +7,27 @@ import java.io.*;
 public class NetworkMessage implements Serializable {
 	protected static final long	serialVersionUID	= 1112122200L;
 	// The different types of message sent by the Client
-	// WHOISIN to receive the list of the users connected
 	// MESSAGE an ordinary message
 	// LOGOUT to disconnect from the Server
-	static final int			WHOISIN				= 0, MESSAGE = 1, LOGOUT = 2;
+	static final int			UPLOADFILE			= 0, MESSAGE = 1, LOGOUT = 2;
 	private int					type;
+	private byte[] fileArray;
 	private String				message;
+	NetworkMessage(int type){//for logout
+		this.type = type;
+	}
 	NetworkMessage(int type, String message) {
 		this.type = type;
 		this.message = message;
 	}
+	NetworkMessage(int type,byte[] filearray){
+		this.type=type;
+		this.fileArray=filearray;
+	}
 	int getType() {
 		return type;
 	}
+	public byte[] getByteArray(){return fileArray;} 
 	String getMessage() {
 		return message;
 	}
