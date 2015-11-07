@@ -18,7 +18,7 @@ public class ClientGUI extends JFrame implements ActionListener {
 	// to Logout and get the list of the users
 	private JButton				login, logout, uploadFile;
 	// for the chat room
-	private JTextArea			textArea;
+	private JTextArea			clientDisplayScreen;
 	// if it is for connection
 	private boolean				connected;
 	// the Client object
@@ -33,19 +33,19 @@ public class ClientGUI extends JFrame implements ActionListener {
 		defaultHost = host;
 		// The NorthPanel with:
 		JPanel northPanel = new JPanel(new GridLayout(3, 1));
-		// the server name anmd the port number
-		JPanel serverAndPort = new JPanel(new GridLayout(1, 5, 1, 3));
+		// the server name and the port number
+		JPanel serverAndPortPanel = new JPanel(new GridLayout(1, 5, 1, 3));
 		// the two JTextField with default value for server address and port number
 		textFieldServer = new JTextField(host);
 		textFieldPort = new JTextField("" + port);
 		textFieldPort.setHorizontalAlignment(SwingConstants.RIGHT);
-		serverAndPort.add(new JLabel("Server Address:  "));
-		serverAndPort.add(textFieldServer);
-		serverAndPort.add(new JLabel("Port Number:  "));
-		serverAndPort.add(textFieldPort);
-		serverAndPort.add(new JLabel(""));
+		serverAndPortPanel.add(new JLabel("Server Address:  "));
+		serverAndPortPanel.add(textFieldServer);
+		serverAndPortPanel.add(new JLabel("Port Number:  "));
+		serverAndPortPanel.add(textFieldPort);
+		serverAndPortPanel.add(new JLabel(""));
 		// adds the Server an port field to the GUI
-		northPanel.add(serverAndPort);
+		northPanel.add(serverAndPortPanel);
 		// the Label and the TextField
 		label = new JLabel("Enter your username below", SwingConstants.CENTER);
 		northPanel.add(label);
@@ -53,12 +53,12 @@ public class ClientGUI extends JFrame implements ActionListener {
 		northPanel.add(textField);
 		add(northPanel, BorderLayout.NORTH);
 		// The CenterPanel which is the chat room
-		textArea = new JTextArea("Login to the server.", 80, 80);
+		clientDisplayScreen = new JTextArea("Login to the server.", 80, 80);
 		JPanel centerPanel = new JPanel(new GridLayout(1, 1));
-		centerPanel.add(new JScrollPane(textArea));
-		textArea.setEditable(false);
-		textArea.setBackground(Color.black);
-		textArea.setForeground(Color.green);
+		centerPanel.add(new JScrollPane(clientDisplayScreen));
+		clientDisplayScreen.setEditable(false);
+		clientDisplayScreen.setBackground(Color.black);
+		clientDisplayScreen.setForeground(Color.green);
 		add(centerPanel, BorderLayout.CENTER);
 		login = new JButton("Login");
 		login.addActionListener(this);
@@ -81,8 +81,8 @@ public class ClientGUI extends JFrame implements ActionListener {
 	}
 	// called by the Client to append text in the TextArea
 	void appendToTextArea(String str) {
-		textArea.append(str);
-	//	textArea.setCaretPosition(textArea.getText().length() - 1);
+		clientDisplayScreen.append(str);
+		// textArea.setCaretPosition(textArea.getText().length() - 1);
 	}
 	// called by the GUI is the connection failed
 	// we reset our buttons, label, textfield
@@ -100,19 +100,18 @@ public class ClientGUI extends JFrame implements ActionListener {
 		textField.removeActionListener(this);
 		connected = false;
 	}
-	
 	/*
 	 * Button or JTextField clicked
 	 */
 	public void actionPerformed(ActionEvent e) {
 		Object object = e.getSource();
-		if (object == logout) {
-			client.sendMessage(new NetworkMessage(NetworkMessage.LOGOUT));
+		if (object == logout) {this.setStateOfLabelsTo(true);
+			client.sendMessage(new NetworkMessage(NetworkMessage.LOGOUT));//tell server client wants to disconnect
 			return;
 		}
 		// if it the who is in button
 		if (object == uploadFile) {
-			//client.sendMessage(new NetworkMessage(NetworkMessage.UPLOADFILE, ""));
+			// client.sendMessage(new NetworkMessage(NetworkMessage.UPLOADFILE, ""));
 			client.uploadFile();
 			return;
 		}
@@ -133,19 +132,18 @@ public class ClientGUI extends JFrame implements ActionListener {
 			// empty or invalid port number, ignore it
 			String portNumber = textFieldPort.getText().trim();
 			if (portNumber.length() == 0) return;
-		
 			try {
 				this.portNumber = Integer.parseInt(portNumber);
 			} catch (Exception en) {
 				return;
 			}
 			// try creating a new Client with GUI
-			client = new Client(server, this.portNumber, username, this,3);
-		
+			client = new Client(server, this.portNumber, username, this, 3);
 			// test if we can start the Client
 			if (!client.start()) return;
-			textField.setText("");
-			label.setText("Submit message by pressing enter.");
+			// textField.setText("");
+			// label.setText("Submit message by pressing enter.");
+			setStateOfLabelsTo(false);
 			connected = true;
 			// disable login button
 			login.setEnabled(false);
@@ -158,5 +156,9 @@ public class ClientGUI extends JFrame implements ActionListener {
 			// Action listener for when the user enter a message
 			textField.addActionListener(this);
 		}
+	}
+	private void setStateOfLabelsTo(boolean b) {
+		this.textField.setVisible(b);
+		this.label.setVisible(b);
 	}
 }

@@ -31,7 +31,7 @@ public class Client {
 		this.port = port;
 		this.username = username;
 		this.clientGUI = cg;// can be null
-		this.userMaxAttempt = attempts;
+		this.userMaxAttempt = attempts+1;
 		this.attempt=1;
 	}
 	public boolean start() {
@@ -80,12 +80,16 @@ public class Client {
 			File file = new File(fileName);
 			// send file
 			byte[] fileArray = new byte[(int) file.length()];
-			if (fileArray.length > Math.pow(2, 10)) {
+			if (fileArray.length > Math.pow(2, 20)) {
 				JOptionPane.showMessageDialog(null,
-				"Na cant send file too big." + fileArray.length + ". File has to be less than or equal to " + Math.pow(2, 10)+"\nYou have "+(this.getMaxAttemptAllowed()-this.getAttempt()+" remaining.");
+				"Na cant send file too big." + fileArray.length + ". File has to be less than or equal to 1MB.\nYou have "+(this.getMaxAttemptAllowed()-this.getAttempt()+" attempts remaining."));
 				this.fileTransferUnsuccessful();
-				if (this.getAttempt() > this.getMaxAttemptAllowed()) disconnect();
-				else return;
+				if (this.getAttempt() > this.getMaxAttemptAllowed()) {
+					JOptionPane.showMessageDialog(null, "You have exceeded the maximum allowed attempts. Your connection with the server will be disconnected.");
+					disconnect();
+					
+				}
+				 return;
 			}
 			BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
 			bis.read(fileArray, 0, fileArray.length);
