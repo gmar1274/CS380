@@ -80,9 +80,8 @@ public class ClientGUI extends JFrame implements ActionListener {
 		textField.requestFocus();
 	}
 	// called by the Client to append text in the TextArea
-	void appendToTextArea(String str) {
+	void displayToClientScreen(String str) {
 		clientDisplayScreen.append(str);
-		// textArea.setCaretPosition(textArea.getText().length() - 1);
 	}
 	// called by the GUI is the connection failed ie server disconeccted.
 	// we reset our buttons, label, textfield
@@ -95,7 +94,6 @@ public class ClientGUI extends JFrame implements ActionListener {
 		// reset port number and host name as a construction time
 		textFieldPort.setText("" + portNumber);
 		textFieldServer.setText(defaultHost);
-		
 		textField.removeActionListener(this);
 		connected = false;
 	}
@@ -103,7 +101,7 @@ public class ClientGUI extends JFrame implements ActionListener {
 		Object object = e.getSource();
 		if (object == logout) {
 			this.setStateOfLabelsTo(true);
-			client.sendMessage(new NetworkMessage(NetworkMessage.LOGOUT));//tell server client wants to disconnect
+			client.sendMessage(new NetworkMessage(NetworkMessage.LOGOUT));// tell server client wants to disconnect
 			return;
 		}
 		if (object == uploadFile) {
@@ -135,7 +133,6 @@ public class ClientGUI extends JFrame implements ActionListener {
 			client = new Client(server, this.portNumber, username, this, 3);
 			// test if we can start the Client
 			if (!client.start()) return;
-			
 			setStateOfLabelsTo(false);
 			connected = true;
 			// disable login button
@@ -143,7 +140,6 @@ public class ClientGUI extends JFrame implements ActionListener {
 			// enable the 2 buttons
 			logout.setEnabled(true);
 			uploadFile.setEnabled(true);
-		
 		}
 	}
 	private void setStateOfLabelsTo(boolean b) {
@@ -151,5 +147,8 @@ public class ClientGUI extends JFrame implements ActionListener {
 		this.label.setVisible(b);
 		textFieldServer.setEditable(b);
 		textFieldPort.setEditable(b);
+	}
+	public static void main(String[] args){
+	ClientGUI c = new ClientGUI("localhost",23); 	
 	}
 }

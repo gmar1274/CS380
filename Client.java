@@ -72,7 +72,7 @@ public class Client {
 	 */
 	private void displayToClientScreen(String msg) {
 		if (clientGUI == null) System.out.println(msg); // println in console mode
-		else clientGUI.appendToTextArea("\n" + msg); // append to the ClientGUI display field.
+		else clientGUI.displayToClientScreen("\n" + msg); // append to the ClientGUI display field.
 	}
 	public void uploadFile() {
 		try {
@@ -115,7 +115,7 @@ public class Client {
 		}
 	}
 	/*
-	 * When something goes wrong Close the Input/Output streams and disconnect not much to do in the catch clause
+	 * Close all the open streams.
 	 */
 	private void disconnect() {
 		try {
@@ -129,64 +129,6 @@ public class Client {
 		} catch (Exception e) {}
 		if (clientGUI != null) clientGUI.connectionFailed();
 	}
-	/*
-	 * To start the Client in console mode use one of the following command > java Client > java Client username > java Client username portNumber > java Client
-	 * username portNumber serverAddress at the console prompt If the portNumber is not specified 1500 is used If the serverAddress is not specified "localHost"
-	 * is used If the username is not specified "Anonymous" is used > java Client is equivalent to > java Client Anonymous 1500 localhost are eqquivalent In
-	 * console mode, if an error occurs the program simply stops when a GUI id used, the GUI is informed of the disconnection
-	 */
-	// public static void main(final String[] args) {
-	// SwingUtilities.invokeLater(new Runnable() {
-	// public void run() {
-	// // default values
-	// int portNumber = 1500;
-	// String serverAddress = "localhost";
-	// String userName = "Anonymous";
-	// switch (args.length) {
-	// case 3:
-	// serverAddress = args[2];
-	// case 2:
-	// try {
-	// portNumber = Integer.parseInt(args[1]);
-	// } catch (Exception e) {
-	// System.out.println("Invalid port number.");
-	// System.out.println("Usage is: > java Client username portNumber serverAddress");
-	// return;
-	// }
-	// case 1:
-	// userName = args[0];
-	// case 0:
-	// break;
-	// default:
-	// System.out.println("Usage is: > java Client username portNumber {serverAddress}");
-	// return;
-	// }
-	// Client client = new Client(serverAddress, portNumber, userName);
-	// // test if we can start the connection to the Server
-	// if (!client.start()) return;
-	// // wait for messages from user
-	// Scanner scan = new Scanner(System.in);
-	// while (true) {
-	// // read message from user
-	// String msg = scan.nextLine();
-	// // logout if message is LOGOUT
-	// if (msg.equalsIgnoreCase("LOGOUT")) {
-	// client.sendMessage(new NetworkMessage(NetworkMessage.LOGOUT, ""));
-	// // break to do the disconnect
-	// break;
-	// }
-	// // message WhoIsIn
-	// else if (msg.equalsIgnoreCase("WHOISIN")) {
-	// client.sendMessage(new NetworkMessage(NetworkMessage.UPLOADFILE, ""));
-	// } else { // default to ordinary message
-	// client.sendMessage(new NetworkMessage(NetworkMessage.MESSAGE, msg));
-	// }
-	// }
-	// // done disconnect
-	// client.disconnect();
-	// }
-	// });
-	// }
 	public void fileTransferUnsuccessful() {
 		++this.attempt;
 	}
@@ -205,7 +147,7 @@ public class Client {
 						System.out.println(msg);
 						System.out.print("> ");
 					} else {
-						clientGUI.appendToTextArea("\n> " + msg);
+						clientGUI.displayToClientScreen("\n> " + msg);
 					}
 				} catch (IOException e) {
 					displayToClientScreen("\n> Connection with the server has been terminated.");

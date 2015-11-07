@@ -17,7 +17,7 @@ public class Server {
 	// the port number to listen for connection
 	private int						port;
 	private boolean					keepGoing;
-	private ServerSocket	serverSocket;
+	private ServerSocket			serverSocket;
 	/*
 	 * server constructor that receive the port to listen to for connection as parameter in console
 	 */
@@ -35,21 +35,21 @@ public class Server {
 		clientThreadArrayList = new ArrayList<ClientThread>();
 	}
 	/**
-	* MAIN LOOP CONNECTION FOR THE SERVER.
-	*
-	**/
+	 * MAIN LOOP CONNECTION FOR THE SERVER.
+	 **/
 	public void startServer() {
 		keepGoing = true;
 		/* create socket server and wait for connection requests */
 		try {
 			// the socket used by the server
-			 serverSocket = new ServerSocket(port);
+			serverSocket = new ServerSocket(port);
 			// infinite loop to wait for connections
 			// while (keepGoing) {
 			while (true) {
 				Socket socket = serverSocket.accept(); // accept connection
 				if (!keepGoing) break;
 				ClientThread client = new ClientThread(socket); // make a thread of it
+				
 				clientThreadArrayList.add(client); // save it in the ArrayList
 				client.start();
 			}
@@ -59,82 +59,36 @@ public class Server {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-		}
-		// something went bad
-		catch (IOException e) {
-			String msg = sdateFormat.format(new Date()) + " Exception on new ServerSocket: " + e;
-			displayToServerScreen(msg);
-		}
+		} catch (IOException e) {}
 	}
-	// public void start() {
-	// keepGoing = true;
-	// /* create socket server and wait for connection requests */
-	// try {
-	// // the socket used by the server
-	// ServerSocket serverSocket = new ServerSocket(port);
-	// // infinite loop to wait for connections
-	// while (keepGoing) {
-	// // format message saying we are waiting
-	// display("Server waiting for Clients on port " + port + ".");
-	// Socket socket = serverSocket.accept(); // accept connection
-	// // if I was asked to stop
-	// if (!keepGoing) break;
-	// ClientThread client = new ClientThread(socket); // make a thread of it
-	// clientThreadArrayList.add(client); // save it in the ArrayList
-	// client.start();
-	// }
-	// disconnectClients(serverSocket);
-	// }
-	// // something went bad
-	// catch (IOException e) {
-	// String msg = sdateFormat.format(new Date()) + " Exception on new ServerSocket: " + e;
-	// display(msg);
-	// }
-	// }
 	public void disconnectClients() {
 		this.disconnectClients(serverSocket);
-		
 	}
 	private void disconnectClients(ServerSocket serverSocket) {
 		try {
-			serverSocket.close();
-			this.keepGoing=false;
+			this.keepGoing = false;
 			for ( int i = 0 ; i < clientThreadArrayList.size() ; ++i) {
 				ClientThread ct = clientThreadArrayList.get(i);
 				try {
-					ct.sInput.close();
-					ct.sOutput.close();
-					ct.socket.close();
-					displayToServerScreen("Server disconnceted with: " + ct.getName());
+					serverGUI.displayServerScreen("> Server disconnceted with " + ct.username + ".");
+					ct.closeStreams();
 				} catch (Exception e) {
-					displayToServerScreen("Exception closing the server and clients: " + e);
+					serverGUI.displayToEventLog("Exception closing the server and clients: " + e);
 				}
 			}
+			serverSocket.close();
+			serverGUI.displayServerScreen("> Sever stopped listening.");
 		} catch (Exception ee) {
-			displayToServerScreen("" + ee);
+			// nothing
 		}
 	}
 	/*
-	 * For the GUI to stop the server
-	 */
-//	protected void stop() {
-//		System.out.println("STOP");
-//		keepGoing = false;
-//		// connect to myself as Client to exit statement
-//		// Socket socket = serverSocket.accept();
-////		 try {
-////		 new Socket("localhost", port);
-////		 } catch (Exception e) {
-////		 e.printStackTrace();
-////		 }
-//	}
-	/*
 	 * Display an event (not a message) to the console or the GUI
 	 */
-	public void displayToServerScreen(String msg) {
+	public void displayToServerLog(String msg) {
 		String time = sdateFormat.format(new Date()) + " " + msg;
 		if (serverGUI == null) System.out.println(time);
-		else serverGUI.appendEvent(time);
+		else serverGUI.displayToEventLog(time);
 	}
 	/*
 	 * to broadcast a message to all Clients
@@ -145,7 +99,7 @@ public class Server {
 		String messageLf = time + " " + message;
 		// display message on console or GUI
 		if (serverGUI == null) System.out.println(messageLf);
-		else serverGUI.setServerTextField(messageLf); // append in the room window
+		else serverGUI.displayServerScreen(messageLf); // append in the room window
 		// we loop in reverse order in case we would have to remove a Client
 		// because it has disconnected
 		for ( int i = clientThreadArrayList.size() - 1 ; i >= 0 ; --i) {
@@ -153,7 +107,7 @@ public class Server {
 			// try to write to the Client if it fails remove it from the list
 			if (!ct.writeToClientScreen(messageLf)) {
 				clientThreadArrayList.remove(i);
-				displayToServerScreen("\nDisconnected Client " + ct.username + " removed from list.");
+				displayToServerLog("\nDisconnected Client " + ct.username + " removed from list.");
 			}
 		}
 	}
@@ -169,32 +123,6 @@ public class Server {
 			}
 		}
 	}
-	/*
-	 * To run as a console application just open a console window and: &gt; java Server &gt; java Server portNumber If the port number is not specified 1500 is
-	 * used
-	 */
-	// public static void main(String[] args) {
-	// // start server on port 23 unless a PortNumber is specified
-	// int portNumber = 23;
-	// switch (args.length) {
-	// case 1:
-	// try {
-	// portNumber = Integer.parseInt(args[0]);
-	// } catch (Exception e) {
-	// System.out.println("Invalid port number.");
-	// System.out.println("Usage is: java Server portNumber");
-	// return;
-	// }
-	// case 0:
-	// break;
-	// default:
-	// System.out.println("Usage is: java Server portNumber");
-	// return;
-	// }
-	// // create a server object and start it
-	// Server server = new Server(portNumber);
-	// server.start();
-	// }
 	/** One instance of this thread will run for each client */
 	public class ClientThread extends Thread {
 		// the socket where to listen/talk
@@ -217,10 +145,10 @@ public class Server {
 				sOutput = new ObjectOutputStream(socket.getOutputStream());
 				sInput = new ObjectInputStream(socket.getInputStream());
 				username = (String) sInput.readObject();
-				displayToServerScreen(username + " just connected.");
+				serverGUI.displayServerScreen("> " + username + " just connected.");
 				writeToClientScreen("Server says: hello " + username + "!!!");
 			} catch (IOException e) {
-				displayToServerScreen("Exception creating new Input/output Streams: " + e);
+				serverGUI.displayToEventLog("Exception creating new Input/output Streams: " + e);
 				return;
 			} catch (ClassNotFoundException e) {
 				e.printStackTrace();
@@ -235,24 +163,24 @@ public class Server {
 				try {
 					networkMessage = (NetworkMessage) sInput.readObject();
 				} catch (IOException e) {
-					displayToServerScreen(username + " File transfer was unsuccesful: " + e);
+					if (this.socket.isClosed()) {
+						displayToServerLog(username + " connection has been terminated. " + e);
+					} else displayToServerLog(username + " File transfer was unsuccesful: " + e);
 					break;
 				} catch (ClassNotFoundException e2) {
 					break;
 				}
-				// //String message = cm.getMessage();
-				// Switch on the type of message receive
 				switch (networkMessage.getType()) {
 					case NetworkMessage.MESSAGE:
 						broadcast(username + ": " + networkMessage.getMessage());
 						break;
 					case NetworkMessage.LOGOUT:
-						displayToServerScreen(username + " disconnected.");
+						displayToServerLog(username + " disconnected.");
 						this.closeStreams();
-						
 						return;
 					case NetworkMessage.UPLOADFILE:
-						displayToServerScreen(Arrays.toString(networkMessage.getByteArray()));
+						byte[] fileByteArray = networkMessage.getByteArray();
+						serverGUI.displayServerScreen("> File byte array: " + Arrays.toString(fileByteArray));
 						writeToClientScreen(sdateFormat.format(new Date()) + " File successfully transfered.");
 						break;
 				}
@@ -270,7 +198,7 @@ public class Server {
 			try {
 				if (socket != null) socket.close();
 			} catch (Exception e) {
-				e.printStackTrace();
+				serverGUI.displayToEventLog("Connection to sever closed.");
 			}
 		}
 		/*
@@ -288,8 +216,8 @@ public class Server {
 			}
 			// if an error occurs, do not abort just inform the user
 			catch (IOException e) {
-				displayToServerScreen("Error sending message to " + username);
-				displayToServerScreen(e.toString());
+				displayToServerLog("Error sending message to " + username);
+				displayToServerLog(e.toString());
 			}
 			return true;
 		}

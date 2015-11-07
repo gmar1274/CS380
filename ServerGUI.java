@@ -26,7 +26,7 @@ public class ServerGUI extends JFrame implements ActionListener, WindowListener 
 	}
 	ServerGUI(int port) {
 		super("Server");
-		//server = null;
+		// server = null;
 		// in the NorthPanel the PortNumber the Start and Stop buttons
 		JPanel north = new JPanel();
 		north.add(new JLabel("Port number: "));
@@ -41,11 +41,11 @@ public class ServerGUI extends JFrame implements ActionListener, WindowListener 
 		JPanel center = new JPanel(new GridLayout(2, 1));
 		serverTextField = new JTextArea(80, 80);
 		serverTextField.setEditable(false);
-		setServerTextField("> Server is not currently listening.");
+		displayServerScreen("> Server is not currently listening.");
 		center.add(new JScrollPane(serverTextField));
 		event = new JTextArea(80, 80);
 		event.setEditable(false);
-		appendEvent("Events log.");
+		displayToEventLog("Events log.");
 		center.add(new JScrollPane(event));
 		add(center);
 		// need to be informed when the user click the close button on the frame
@@ -56,45 +56,37 @@ public class ServerGUI extends JFrame implements ActionListener, WindowListener 
 	}
 	// append message to the two JTextArea
 	// position at the end
-	void setServerTextField(String str) {
+	void displayServerScreen(String str) {
 		serverTextField.append(str + "\n");
 	}
-	void appendEvent(String str) {
+	void displayToEventLog(String str) {
 		event.append(str + "\n");
 	}
 	// start or stop where clicked
 	public void actionPerformed(ActionEvent e) {
-		if (e.getSource() == this.connectButton && this.connectButton.getText().equalsIgnoreCase("Stop") && server!=null) {
-			System.out.println("KK");
+		if (e.getSource() == this.connectButton && this.connectButton.getText().equalsIgnoreCase("Stop") && server != null) {
 			server.disconnectClients();
 			server = null;
 			tPortNumber.setEditable(true);
 			connectButton.setText("Start");
-			tPortNumber.setEditable(true);
-			return;
+		} else {
+			// OK start the server
+			int port;
+			try {
+				port = Integer.parseInt(tPortNumber.getText().trim());
+			} catch (Exception ee) {
+				displayToEventLog("Invalid port number.");
+				return;
+			}
+			// create a new Server
+			server = new Server(port, this);
+			// and start it as a thread
+			new ServerRunning().start();
+			this.displayServerScreen("> Server is listening on port: " + port);
+			connectButton.setText("Stop");
+			tPortNumber.setEditable(false);
 		}
-		
-		// OK start the server
-		int port;
-		try {
-			port = Integer.parseInt(tPortNumber.getText().trim());
-		} catch (Exception ee) {
-			appendEvent("Invalid port number.");
-			return;
-		}
-		// create a new Server
-		server = new Server(port, this);
-		// and start it as a thread
-		new ServerRunning().start();
-		this.setServerTextField("> Server is listening on port: " + port);
-		connectButton.setText("Stop");
-		tPortNumber.setEditable(false);
 	}
-	// entry point to start the Server
-	// public static void main(String[] arg) {
-	// // start server default port 23
-	// new ServerGUI(23);
-	// }
 	/*
 	 * If the user click the X button to close the application connection with the server will be released and port freed.
 	 */
@@ -121,11 +113,10 @@ public class ServerGUI extends JFrame implements ActionListener, WindowListener 
 	class ServerRunning extends Thread {
 		public void run() {
 			if (inBG) server.startServer();
-			// else server.start();
-			connectButton.setText("Start");
-			tPortNumber.setEditable(true);
-			if (inBG) appendEvent("Server crashed.");
-			server = null;
+			else {
+				server.startServer();
+				// if (inBG) appendEvent("Server crashed.");
+			}
 		}
 	}
 }
