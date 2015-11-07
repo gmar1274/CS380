@@ -34,6 +34,9 @@ public class Client {
 		this.userMaxAttempt = attempts+1;
 		this.attempt=1;
 	}
+	Client(String server,int port,int attempts){
+		this(server,port,null,null,attempts);
+	}
 	public boolean start() {
 		// try to connect to the server
 		try {

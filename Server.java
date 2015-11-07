@@ -17,6 +17,7 @@ public class Server {
 	// the port number to listen for connection
 	private int						port;
 	private boolean					keepGoing;
+	private ServerSocket	serverSocket;
 	/*
 	 * server constructor that receive the port to listen to for connection as parameter in console
 	 */
@@ -42,7 +43,7 @@ public class Server {
 		/* create socket server and wait for connection requests */
 		try {
 			// the socket used by the server
-			ServerSocket serverSocket = new ServerSocket(port);
+			 serverSocket = new ServerSocket(port);
 			// infinite loop to wait for connections
 			// while (keepGoing) {
 			while (true) {
@@ -90,9 +91,14 @@ public class Server {
 	// display(msg);
 	// }
 	// }
+	public void disconnectClients() {
+		this.disconnectClients(serverSocket);
+		
+	}
 	private void disconnectClients(ServerSocket serverSocket) {
 		try {
 			serverSocket.close();
+			this.keepGoing=false;
 			for ( int i = 0 ; i < clientThreadArrayList.size() ; ++i) {
 				ClientThread ct = clientThreadArrayList.get(i);
 				try {
@@ -111,17 +117,17 @@ public class Server {
 	/*
 	 * For the GUI to stop the server
 	 */
-	protected void stop() {
-		System.out.println("STOP");
-		keepGoing = false;
-		// connect to myself as Client to exit statement
-		// Socket socket = serverSocket.accept();
-//		 try {
-//		 new Socket("localhost", port);
-//		 } catch (Exception e) {
-//		 e.printStackTrace();
-//		 }
-	}
+//	protected void stop() {
+//		System.out.println("STOP");
+//		keepGoing = false;
+//		// connect to myself as Client to exit statement
+//		// Socket socket = serverSocket.accept();
+////		 try {
+////		 new Socket("localhost", port);
+////		 } catch (Exception e) {
+////		 e.printStackTrace();
+////		 }
+//	}
 	/*
 	 * Display an event (not a message) to the console or the GUI
 	 */

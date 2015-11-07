@@ -83,6 +83,14 @@ public class FTP extends JFrame {
 				serverThread.start();
 			} else if (e.getSource() == this.server) {
 				// act as reciever
+				this.frame.dispose();
+				ServerGUI serverGUI = new ServerGUI(23);
+				Thread clientThread = new Thread() {
+					public void start() {
+						new Client("localhost",23,3);//default value will be changed if user decides to change it in the clintGUI class
+					}
+				};
+				clientThread.start();
 			}
 		}
 	}

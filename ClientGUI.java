@@ -84,7 +84,7 @@ public class ClientGUI extends JFrame implements ActionListener {
 		clientDisplayScreen.append(str);
 		// textArea.setCaretPosition(textArea.getText().length() - 1);
 	}
-	// called by the GUI is the connection failed
+	// called by the GUI is the connection failed ie server disconeccted.
 	// we reset our buttons, label, textfield
 	void connectionFailed() {
 		login.setEnabled(true);
@@ -95,30 +95,24 @@ public class ClientGUI extends JFrame implements ActionListener {
 		// reset port number and host name as a construction time
 		textFieldPort.setText("" + portNumber);
 		textFieldServer.setText(defaultHost);
-		textFieldServer.setEditable(false);
-		textFieldPort.setEditable(false);
+		
 		textField.removeActionListener(this);
 		connected = false;
 	}
-	/*
-	 * Button or JTextField clicked
-	 */
 	public void actionPerformed(ActionEvent e) {
 		Object object = e.getSource();
-		if (object == logout) {this.setStateOfLabelsTo(true);
+		if (object == logout) {
+			this.setStateOfLabelsTo(true);
 			client.sendMessage(new NetworkMessage(NetworkMessage.LOGOUT));//tell server client wants to disconnect
 			return;
 		}
-		// if it the who is in button
 		if (object == uploadFile) {
-			// client.sendMessage(new NetworkMessage(NetworkMessage.UPLOADFILE, ""));
 			client.uploadFile();
 			return;
 		}
 		// ok it is coming from the JTextField
 		if (connected) {
 			client.sendMessage(new NetworkMessage(NetworkMessage.MESSAGE, textField.getText()));
-			textField.setText("");
 			return;
 		}
 		if (object == login) {
@@ -141,8 +135,7 @@ public class ClientGUI extends JFrame implements ActionListener {
 			client = new Client(server, this.portNumber, username, this, 3);
 			// test if we can start the Client
 			if (!client.start()) return;
-			// textField.setText("");
-			// label.setText("Submit message by pressing enter.");
+			
 			setStateOfLabelsTo(false);
 			connected = true;
 			// disable login button
@@ -150,15 +143,13 @@ public class ClientGUI extends JFrame implements ActionListener {
 			// enable the 2 buttons
 			logout.setEnabled(true);
 			uploadFile.setEnabled(true);
-			// disable the Server and Port JTextField
-			textFieldServer.setEditable(false);
-			textFieldPort.setEditable(false);
-			// Action listener for when the user enter a message
-			textField.addActionListener(this);
+		
 		}
 	}
 	private void setStateOfLabelsTo(boolean b) {
 		this.textField.setVisible(b);
 		this.label.setVisible(b);
+		textFieldServer.setEditable(b);
+		textFieldPort.setEditable(b);
 	}
 }

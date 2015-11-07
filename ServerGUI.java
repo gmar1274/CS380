@@ -15,19 +15,18 @@ public class ServerGUI extends JFrame implements ActionListener, WindowListener 
 	private JTextField			tPortNumber;
 	// my server
 	private Server				server;
-	private boolean	inBG;
+	private boolean				inBG;
 	// server constructor that receive the port to listen to for connection as parameter
 	ServerGUI(int port, boolean visible) {
 		super("Server");
 		server = new Server(port);
-		
-		inBG=true;
+		inBG = !visible;
 		new ServerRunning().start();
 		setVisible(false);
 	}
 	ServerGUI(int port) {
 		super("Server");
-		server = null;
+		//server = null;
 		// in the NorthPanel the PortNumber the Start and Stop buttons
 		JPanel north = new JPanel();
 		north.add(new JLabel("Port number: "));
@@ -65,14 +64,16 @@ public class ServerGUI extends JFrame implements ActionListener, WindowListener 
 	}
 	// start or stop where clicked
 	public void actionPerformed(ActionEvent e) {
-		// if running we have to stop
-		if (server != null) {
-			server.stop();
+		if (e.getSource() == this.connectButton && this.connectButton.getText().equalsIgnoreCase("Stop") && server!=null) {
+			System.out.println("KK");
+			server.disconnectClients();
 			server = null;
 			tPortNumber.setEditable(true);
 			connectButton.setText("Start");
+			tPortNumber.setEditable(true);
 			return;
 		}
+		
 		// OK start the server
 		int port;
 		try {
@@ -100,7 +101,7 @@ public class ServerGUI extends JFrame implements ActionListener, WindowListener 
 	public void windowClosing(WindowEvent e) {
 		if (server != null) {
 			try {
-				server.stop(); // close the connection
+				server.disconnectClients(); // close the connection
 			} catch (Exception ee) {
 				ee.printStackTrace();
 			}
@@ -118,14 +119,12 @@ public class ServerGUI extends JFrame implements ActionListener, WindowListener 
 	 * A thread to run the Server
 	 */
 	class ServerRunning extends Thread {
-	
-
 		public void run() {
-			if(inBG)server.startServer();
-		//	else server.start();
+			if (inBG) server.startServer();
+			// else server.start();
 			connectButton.setText("Start");
 			tPortNumber.setEditable(true);
-			if(inBG)appendEvent("Server crashed.");
+			if (inBG) appendEvent("Server crashed.");
 			server = null;
 		}
 	}
