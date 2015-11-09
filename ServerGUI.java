@@ -99,7 +99,7 @@ public class ServerGUI extends JFrame implements ActionListener, WindowListener 
 			}
 			server = null;
 		}
-		System.exit(0);
+		FTP.main(null);
 	}
 	public void windowClosed(WindowEvent e) {}
 	public void windowOpened(WindowEvent e) {}

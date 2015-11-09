@@ -1,13 +1,23 @@
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.io.BufferedInputStream;
-import java.io.File;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 
 /*
  * The Client with its GUI
  */
-public class ClientGUI extends JFrame implements ActionListener {
+public class ClientGUI extends JFrame implements ActionListener, WindowListener {
 	private static final long	serialVersionUID	= 1L;
 	// will first hold "Username:", later on "Enter message"
 	private JLabel				label;
@@ -73,9 +83,9 @@ public class ClientGUI extends JFrame implements ActionListener {
 		southPanel.add(logout);
 		southPanel.add(uploadFile);
 		add(southPanel, BorderLayout.SOUTH);
-		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		setSize(550, 500);
 		this.setLocationRelativeTo(null);
+		this.addWindowListener(this);
 		setVisible(true);
 		textField.requestFocus();
 	}
@@ -148,7 +158,27 @@ public class ClientGUI extends JFrame implements ActionListener {
 		textFieldServer.setEditable(b);
 		textFieldPort.setEditable(b);
 	}
-	public static void main(String[] args){
-	ClientGUI c = new ClientGUI("localhost",23); 	
+	/*
+	 * If the user click the X button to close the application connection with the server will be released and port freed.
+	 */
+	public void windowClosing(WindowEvent e) {
+		if (client != null) {
+			try {
+				client.disconnect(); // close the connection
+			} catch (Exception ee) {
+				ee.printStackTrace();
+			}
+			client = null;
+		}
+		 FTP.main(null);
+	}
+	public void windowClosed(WindowEvent e) {}
+	public void windowOpened(WindowEvent e) {}
+	public void windowIconified(WindowEvent e) {}
+	public void windowDeiconified(WindowEvent e) {}
+	public void windowActivated(WindowEvent e) {}
+	public void windowDeactivated(WindowEvent e) {}
+	public static void main(String[] args) {
+		ClientGUI c = new ClientGUI("localhost", 23);
 	}
 }

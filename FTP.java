@@ -1,26 +1,8 @@
-import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.URL;
-import java.net.URLConnection;
 import javax.swing.JButton;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;
@@ -72,12 +54,12 @@ public class FTP extends JFrame {
 			this.repaint();
 		}
 		public void actionPerformed(ActionEvent e) {
-			if (e.getSource() == this.client) {
+			if (e.getSource() == this.client) {//act as sender 
 				this.frame.dispose();
-				ClientGUI clientGUI = new ClientGUI("localhost", 23);//default value
+				ClientGUI clientGUI = new ClientGUI("localhost", 23);// default value
 				Thread serverThread = new Thread() {
 					public void start() {
-						new ServerGUI(23, false);//default value will be changed if user decides to change it in the clintGUI class
+						new ServerGUI(23, false);// default value will be changed if user decides to change it in the clintGUI class
 					}
 				};
 				serverThread.start();
@@ -87,7 +69,7 @@ public class FTP extends JFrame {
 				ServerGUI serverGUI = new ServerGUI(23);
 				Thread clientThread = new Thread() {
 					public void start() {
-						new Client("localhost",23,3);//default value will be changed if user decides to change it in the clintGUI class
+						new Client("localhost", 23, 3);// default value will be changed if user decides to change it in the clintGUI class
 					}
 				};
 				clientThread.start();

@@ -49,7 +49,6 @@ public class Server {
 				Socket socket = serverSocket.accept(); // accept connection
 				if (!keepGoing) break;
 				ClientThread client = new ClientThread(socket); // make a thread of it
-				
 				clientThreadArrayList.add(client); // save it in the ArrayList
 				client.start();
 			}
@@ -93,24 +92,24 @@ public class Server {
 	/*
 	 * to broadcast a message to all Clients
 	 */
-	private synchronized void broadcast(String message) {
-		// // add HH:mm:ss to the message
-		String time = sdateFormat.format(new Date());
-		String messageLf = time + " " + message;
-		// display message on console or GUI
-		if (serverGUI == null) System.out.println(messageLf);
-		else serverGUI.displayServerScreen(messageLf); // append in the room window
-		// we loop in reverse order in case we would have to remove a Client
-		// because it has disconnected
-		for ( int i = clientThreadArrayList.size() - 1 ; i >= 0 ; --i) {
-			ClientThread ct = clientThreadArrayList.get(i);
-			// try to write to the Client if it fails remove it from the list
-			if (!ct.writeToClientScreen(messageLf)) {
-				clientThreadArrayList.remove(i);
-				displayToServerLog("\nDisconnected Client " + ct.username + " removed from list.");
-			}
-		}
-	}
+	// private synchronized void broadcast(String message) {
+	// // // add HH:mm:ss to the message
+	// String time = sdateFormat.format(new Date());
+	// String messageLf = time + " " + message;
+	// // display message on console or GUI
+	// if (serverGUI == null) System.out.println(messageLf);
+	// else serverGUI.displayServerScreen(messageLf); // append in the room window
+	// // we loop in reverse order in case we would have to remove a Client
+	// // because it has disconnected
+	// for ( int i = clientThreadArrayList.size() - 1 ; i >= 0 ; --i) {
+	// ClientThread ct = clientThreadArrayList.get(i);
+	// // try to write to the Client if it fails remove it from the list
+	// if (!ct.writeToClientScreen(messageLf)) {
+	// clientThreadArrayList.remove(i);
+	// displayToServerLog("\nDisconnected Client " + ct.username + " removed from list.");
+	// }
+	// }
+	// }
 	// for a client who logoff using the LOGOUT message
 	synchronized void remove(int id) {
 		// scan the array list until we found the Id
@@ -145,7 +144,8 @@ public class Server {
 				sOutput = new ObjectOutputStream(socket.getOutputStream());
 				sInput = new ObjectInputStream(socket.getInputStream());
 				username = (String) sInput.readObject();
-				serverGUI.displayServerScreen("> " + username + " just connected.");
+				if (serverGUI != null) serverGUI.displayServerScreen("> " + username + " just connected.");
+				else System.out.println("> " + username + " just connected.");
 				writeToClientScreen("Server says: hello " + username + "!!!");
 			} catch (IOException e) {
 				serverGUI.displayToEventLog("Exception creating new Input/output Streams: " + e);
@@ -158,6 +158,9 @@ public class Server {
 		public void run() {
 			listenForClients();
 		}
+		/**
+		 * THE MAIN LISTENING LOOP
+		 */
 		public void listenForClients() {// to loop until LOGOUT
 			while (true) {
 				try {
@@ -171,16 +174,25 @@ public class Server {
 					break;
 				}
 				switch (networkMessage.getType()) {
-					case NetworkMessage.MESSAGE:
-						broadcast(username + ": " + networkMessage.getMessage());
-						break;
+				// case NetworkMessage.MESSAGE:
+				// broadcast(username + ": " + networkMessage.getMessage());
+				// break;
 					case NetworkMessage.LOGOUT:
 						displayToServerLog(username + " disconnected.");
 						this.closeStreams();
 						return;
 					case NetworkMessage.UPLOADFILE:
 						byte[] fileByteArray = networkMessage.getByteArray();
-						serverGUI.displayServerScreen("> File byte array: " + Arrays.toString(fileByteArray));
+						if (serverGUI != null) serverGUI.displayServerScreen("> File byte array: " + Arrays.toString(fileByteArray));
+						else System.out.println("> File byte array: " + Arrays.toString(fileByteArray));
+						break;
+					case NetworkMessage.LASTPACKETSENT:
+						byte[] fByteArray = networkMessage.getByteArray();
+						if (serverGUI != null) serverGUI.displayServerScreen("> File byte array: " + Arrays.toString(fByteArray));
+						else {
+							System.out.println("> File byte array: " + Arrays.toString(fByteArray));
+							System.out.println("> File has been succesfully recieved.");
+						}
 						writeToClientScreen(sdateFormat.format(new Date()) + " File successfully transfered.");
 						break;
 				}

@@ -1,3 +1,4 @@
+import java.lang.reflect.Array;
 import java.net.*;
 import java.io.*;
 import java.util.*;
@@ -31,11 +32,11 @@ public class Client {
 		this.port = port;
 		this.username = username;
 		this.clientGUI = cg;// can be null
-		this.userMaxAttempt = attempts+1;
-		this.attempt=1;
+		this.userMaxAttempt = attempts + 1;
+		this.attempt = 1;
 	}
-	Client(String server,int port,int attempts){
-		this(server,port,null,null,attempts);
+	Client(String server, int port, int attempts) {
+		this(server, port, null, null, attempts);
 	}
 	public boolean start() {
 		// try to connect to the server
@@ -84,21 +85,47 @@ public class Client {
 			// send file
 			byte[] fileArray = new byte[(int) file.length()];
 			if (fileArray.length > Math.pow(2, 20)) {
-				JOptionPane.showMessageDialog(null,
-				"Na cant send file too big." + fileArray.length + ". File has to be less than or equal to 1MB.\nYou have "+(this.getMaxAttemptAllowed()-this.getAttempt()+" attempts remaining."));
+				JOptionPane.showMessageDialog(null, "Na cant send file too big." + fileArray.length + ". File has to be less than or equal to 1MB.\nYou have "
+				+ (this.getMaxAttemptAllowed() - this.getAttempt() + " attempts remaining."));
 				this.fileTransferUnsuccessful();
 				if (this.getAttempt() > this.getMaxAttemptAllowed()) {
-					JOptionPane.showMessageDialog(null, "You have exceeded the maximum allowed attempts. Your connection with the server will be disconnected.");
+					JOptionPane
+					.showMessageDialog(null, "You have exceeded the maximum allowed attempts. Your connection with the server will be disconnected.");
 					disconnect();
-					
 				}
-				 return;
+				return;
 			}
-			BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
-			bis.read(fileArray, 0, fileArray.length);
-			this.sOutput.writeObject(new NetworkMessage(NetworkMessage.UPLOADFILE, fileArray));
+			sendBytes(file, fileArray);
 		} catch (Exception e) {
 			e.printStackTrace();
+		}
+	}
+	private void sendBytes(File file, byte[] fileArray) {
+		try {
+			BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
+			// send 1KB at a time
+			bis.read(fileArray, 0, fileArray.length);
+			int remaining = 0;
+			System.out.println("size: "+fileArray.length);
+			for ( int i = 0 ; i < fileArray.length ; i += Math.pow(2, 10)) {
+				System.out.println("i:: "+i);
+				byte[] a = new byte[(int) Math.pow(2, 10)];
+				
+				a = Arrays.copyOfRange(fileArray, i, i + (int) Math.pow(2, 10));
+				if (a.length <= 0) break; // this will happen if the bounds i to 2^20 exceeds fileArray's bounds
+				else this.sOutput.writeObject(new NetworkMessage(NetworkMessage.UPLOADFILE, a));
+				remaining = i;
+			}
+			// send remaining bytes
+			byte[] r = new byte[(int) Math.pow(2, 10)];
+			for ( int i = fileArray.length - remaining ; i < r.length ; ++i) {
+				if (i > fileArray.length) r[i] = 0;// padding
+				else r[i] = fileArray[i];// send remaining bytes
+			}
+			this.sOutput.writeObject(new NetworkMessage(NetworkMessage.LASTPACKETSENT, r));
+		} catch (Exception e) {// just sending bytes
+			this.displayToClientScreen("> Unsuccessful file transfer.");
+			this.disconnect();
 		}
 	}
 	public int getMaxAttemptAllowed() {
@@ -117,7 +144,7 @@ public class Client {
 	/*
 	 * Close all the open streams.
 	 */
-	private void disconnect() {
+	public void disconnect() {
 		try {
 			if (sInput != null) sInput.close();
 		} catch (Exception e) {}
