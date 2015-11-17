@@ -346,7 +346,7 @@ public class Encryption {
 	        bitString.append(byteToBits(((byte)key.indexOf(input.charAt(a))), 6));    
 	    }
 	}
-	decodedArray = new byte[bitString.length() / 8 - 1]; 
+	decodedArray = new byte[bitString.length() / 8 - (input.indexOf('=') > 0 ? 1 : 0)]; 
 
 	for(int a = 0, b = 0; b < decodedArray.length; a += 8, b++)
 	    decodedArray[b] = (byte)bitsToChar(bitString.substring(a, a + 8), false);
