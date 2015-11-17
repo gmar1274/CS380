@@ -22,6 +22,7 @@ public class Encryption {
       in the format: <username>:<salt>:<hashed password>
       The username portion of the project is incomplete at the moment.*/
     String[] USERNAMES = new String[]{"sdthomas92:f7d3f5ty2s:<password>"};
+    private static final String key = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     
     /**
      * @param args the command line arguments
@@ -74,8 +75,9 @@ public class Encryption {
      * @param inputFile
      * @param keyFile 
      */
-    public static void sendFile(File inputFile, File keyFile) {       
+    public static ArrayList<byte[]> sendFile(File inputFile, File keyFile) {       
         byte[] file, key;
+        ArrayList<byte[]> byteList = new ArrayList<byte[]>();
         try {
             //Converts both the inputFile and keyFile into byte arrays.
             file = fileToByteArray(inputFile);
@@ -108,13 +110,16 @@ public class Encryption {
                 String encode = encodeBase64(encrypt);
                 
                 byte[] finalArray = encode.getBytes("UTF-8");
+                byteList.add(finalArray);
                 /*Send the resulting byte array to the reciever. This byte 
                   array represents the encrypted chunk and hash, and decoded in
                   base 64. Have the receiver recieve the chunks and store all 
                   the byte array results in a single byte array and send to the
                   "recieveFinishedDataPiece" method.
                 */
+                
             }
+            return byteList;
         }
         catch (Exception e){
             System.out.println("File or key don't exist.");
@@ -167,24 +172,6 @@ public class Encryption {
             return null;
         //The data originally put in the chunk is returned.
         return finishedData;
-    }
-    
-    /**
-     * THIS METHOD IS INCOMPLETE, AND NEEDS TO BE FINISHED.
-     * @param data
-     * @return 
-     */
-    public static String encodeBase64(byte[] data) {
-        return null;
-    }
- 
-        /**
-     * THIS METHOD IS INCOMPLETE, AND NEEDS TO BE FINISHED.
-     * @param data
-     * @return 
-     */
-    public static byte[] decodeBase64(String data) {
-        return null;
     }
     
     /**
@@ -331,6 +318,122 @@ public class Encryption {
     public static void printByteArray(byte[] b) {
         for(int i = 0; i < b.length; i++) 
             System.out.println(Integer.toBinaryString(b[i] & 255 | 256).substring(1));
+    }
+    
+    /**
+     * Default Constructor
+     */
+
+    /**
+     * Decodes a Base64 string and turns it into a byte array
+     * @param input A Base64 encoded string
+     * @return byte[] The byte equivalent of the Base64 string
+     */
+    public static byte[] decodeBase64(String input){ 
+	
+	/*Throws exception if the string isn't a valid Base64String*/
+	if(input.length() % 4 != 0){
+	    throw new IllegalArgumentException("This is not a valid base64 string.");
+	}
+	StringBuffer bitString = new StringBuffer(); // Bit representation of the input string
+	byte[] decodedArray; // Stores the output byte array
+
+	for(int a = 0; a < input.length(); a++){
+	    if(input.charAt(a) == '='){
+		bitString.append((a + 1) == input.length() ? "000000" : "0000"); // Appends 6 zeros if there are two equals, and 4 zeros if there is one
+	    }
+	    else{
+	        bitString.append(byteToBits(((byte)key.indexOf(input.charAt(a))), 6));    
+	    }
+	}
+	decodedArray = new byte[bitString.length() / 8]; 
+
+	for(int a = 0, b = 0; b < decodedArray.length; a += 8, b++)
+	    decodedArray[b] = (byte)bitsToChar(bitString.substring(a, a + 8), false);
+	
+	return decodedArray;
+    }
+
+    /**
+     * Encodes a byte array into a Base64 string
+     * @param input the byte array to be converted
+     * @return String the Base64 string
+     */
+    public static String encodeBase64(byte[] input){
+	StringBuffer bitString = new StringBuffer(), // Bit string representation of the byte array
+	    encodedString = new StringBuffer(); // Base64 representation of the byte array
+
+	/* Creates a bit string represenation of the byte array */
+	for(byte b: input){
+	    bitString.append(byteToBits(b, 8));
+	}
+	/* Appends zeroes so the bit string can be properly converted to Base64 */
+	while(bitString.length() % 6 != 0){
+	    bitString.append("0");
+	}
+	/* Takes 6 bits at a time from the string, converts them into a Base64 character, and appends them to output string */ 
+	for(int a = 0; a < bitString.length(); a += 6){
+	    encodedString.append(bitsToChar(bitString.substring(a, a + 6), true));
+	}
+	/* Appends equal signs to the output string to make it a valid Base64 string */
+	while(encodedString.length() % 4 > 0){
+	    encodedString.append("=");
+	}
+	return encodedString.toString();
+    }
+
+    /**
+     * Converts a byte to a bit string equivalent
+     * @param input A byte to be converted
+     * @param bitLength length of the bit string
+     * @return String bit string conversion of the input
+     */
+    private static String byteToBits(byte input, int bitLength){
+        StringBuffer output = new StringBuffer();
+
+	output.append(input & 1);
+	
+	while(input > 0){
+	input >>= 1;
+	output.append(input & 1);
+	}
+	/* Removes a leading zero that makes the output one greater than the bitlength */
+	if(output.charAt(output.length() - 1) == '0'){
+	    output = new StringBuffer(output.substring(0, output.length() - 1));
+	}
+	/* Appends 0's until the output is equal to the bitlength */
+	while(output.length() < bitLength){
+	    output.append("0");
+	}
+	return reverseString(output.toString());
+    }
+
+    /**
+     * Converts a bit string into an ASCII or Base64 character
+     * @param bits String to be converted
+     * @param isBase64 Decides which conversion method to use
+     * @return String the character representation of the bit string
+     */
+    private static char bitsToChar(String bits, boolean isBase64){
+        int value = 0;
+	int bitCount = isBase64 ? 6 : 8;
+	
+	bits = reverseString(bits);
+        for(int a = 0; a < bitCount; a++){
+	    if(bits.charAt(a) == '1'){
+		value += Math.pow(2, a);
+	    }
+	}
+	return isBase64 ? key.charAt(value) : (char)value;
+    }
+    
+    /**
+     * Takes a string and reverses it
+     * @param input String to be reversed
+     * @return String reversed string
+     */
+    private static String reverseString(String input){
+	return new StringBuffer(input).reverse().toString();
     }
     
 }
