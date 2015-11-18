@@ -343,16 +343,19 @@ public class Encryption {
 		bitString.append((a + 1) == input.length() ? "000000" : "0000"); // Appends 6 zeros if there are two equals, and 4 zeros if there is one
 	    }
 	    else{
-	        bitString.append(byteToBits(((byte)key.indexOf(input.charAt(a))), 6));    
+	        bitString.append(toBits((key.indexOf(input.charAt(a))), 6));    
 	    }
 	}
 	decodedArray = new byte[bitString.length() / 8 - (input.indexOf('=') > 0 ? 1 : 0)]; 
+	for(int a = 0, b = 0; b < decodedArray.length; a += 8, b++){
+	    int tempValue = (int)bitsToChar(bitString.substring(a, a + 8), false);
 
-	for(int a = 0, b = 0; b < decodedArray.length; a += 8, b++)
-	    decodedArray[b] = (byte)bitsToChar(bitString.substring(a, a + 8), false);
-	
+	    if(tempValue > 127){
+	        tempValue -= 256;
+	    }
+	    decodedArray[b] = (byte)tempValue;
+	}
 	return decodedArray;
-    }
 
     /**
      * Encodes a byte array into a Base64 string
@@ -364,8 +367,13 @@ public class Encryption {
 	    encodedString = new StringBuffer(); // Base64 representation of the byte array
 
 	/* Creates a bit string represenation of the byte array */
-	for(byte b: input){
-	    bitString.append(byteToBits(b, 8));
+	for(byte a : input){
+	    int temp = a;
+
+	    if(temp < 0){
+	        temp  = (a + 256);
+	    }
+	    bitString.append(toBits(temp, 8));
 	}
 	/* Appends zeroes so the bit string can be properly converted to Base64 */
 	while(bitString.length() % 6 != 0){
@@ -388,7 +396,7 @@ public class Encryption {
      * @param bitLength length of the bit string
      * @return String bit string conversion of the input
      */
-    private static String byteToBits(byte input, int bitLength){
+    private static String toBits(int input, int bitLength){
         StringBuffer output = new StringBuffer();
 
 	output.append(input & 1);
