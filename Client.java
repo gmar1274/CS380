@@ -1,3 +1,5 @@
+
+
 import java.lang.reflect.Array;
 import java.net.*;
 import java.io.*;
@@ -128,14 +130,16 @@ public class Client {
 	public void disconnect() {
 		try {
                     if (sInput != null) sInput.close();
-		} catch (Exception e) {}
-                try {
+		
                     if (sOutput != null) sOutput.close();
-		} catch (Exception e) {}
-		try {
-                    if (socket != null) socket.close();
-		} catch (Exception e) {}
-		if (clientGUI != null) clientGUI.connectionFailed();
+		  if (socket != null) socket.close();
+                  
+                }catch (Exception e) {
+                }
+		if (clientGUI != null) {
+                  displayToClientScreen("Server connection Termination");
+                    clientGUI.connectionFailed();
+                }
 	}
 	public void fileTransferUnsuccessful() {
 		++this.attempt;
@@ -148,25 +152,36 @@ public class Client {
 	 ****/
 	private class ListenFromServer extends Thread {
             public void run() {
+                 Object serverMsg=null;
                 while (true) {
-                    try {
-                        String msg = (String) sInput.readObject();
-			if (clientGUI == null) {
-                            System.out.println(msg);
-                            System.out.print("> ");
-			} 
-                        else {
-                            clientGUI.displayToClientScreen("\n> " + msg);
-			}
-                    } catch (IOException e) {
-			displayToClientScreen("\n> Connection with the server has been terminated.");
-			if (clientGUI != null) 
-                            clientGUI.connectionFailed();
-			else disconnect();
-                            break;
-                    } catch (ClassNotFoundException e) {
-			e.printStackTrace();
+                      
+                    try{
+                       serverMsg =  sInput.readObject();
+                        
+                    }catch(Exception e){
+                   disconnect();
+                   return;
                     }
+//                    try {
+//                        System.out.println("");
+//                      //  String msg = (String) sInput.readObject();
+////			if (clientGUI == null) {
+////                            System.out.println(msg);
+////                            System.out.print("> ");
+////			} 
+////                        else {
+////                            clientGUI.displayToClientScreen("\n> " + msg);
+////			}
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//			displayToClientScreen("\n> Connection with the server has been terminated.");
+//			if (clientGUI != null) 
+//                            clientGUI.connectionFailed();
+//			else disconnect();
+//                            break;
+//                    } catch (ClassNotFoundException e) {
+//			e.printStackTrace();
+//                    }
 		}
             }
 	}
@@ -209,14 +224,18 @@ public class Client {
                 byte[] finalArray = encode.getBytes(Charset.forName("UTF-8"));
 
                 //finalArray is sent to the receiver.
-                this.sOutput.writeObject(new NetworkMessage(NetworkMessage.UPLOADFILE, finalArray));
+               
                 
+                 this.sOutput.writeObject(new NetworkMessage(NetworkMessage.UPLOADFILE, finalArray));
+                
+                 
             }
             this.sOutput.writeObject(new NetworkMessage(NetworkMessage.LASTPACKETSENT, 
                                                         FTP.encryptDecrypt(inputFile.getName().getBytes(Charset.forName("UTF-8")), 
                                                                            key)));
         }
         catch (Exception e){
+            e.printStackTrace();
             System.out.println("File or key don't exist.");
         }      
     }
