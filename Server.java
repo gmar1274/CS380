@@ -1,7 +1,9 @@
+
 import java.io.*;
 import java.net.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import javax.swing.JOptionPane;
 
 /*
  * The server that can be run both as a console application or a GUI
@@ -41,6 +43,7 @@ public class Server {
      * MAIN LOOP CONNECTION FOR THE SERVER.
      **/
     public void startServer() {
+         
 	keepGoing = true;
 	/* create socket server and wait for connection requests */
 	try {
@@ -50,7 +53,7 @@ public class Server {
             // while (keepGoing) {
             while (true) {
                 Socket socket = serverSocket.accept(); // accept connection
-                System.out.println(socket.getInetAddress());
+                JOptionPane.showMessageDialog( null,""+socket.getInetAddress());
 		if (!keepGoing) 
                     break;
 		ClientThread client = new ClientThread(socket); // make a thread of it
@@ -76,7 +79,7 @@ public class Server {
             for ( int i = 0 ; i < clientThreadArrayList.size() ; ++i) {
                 ClientThread ct = clientThreadArrayList.get(i);
 		try {
-                    serverGUI.displayServerScreen("> Server disconnceted with " + ct.username + ".");                  
+                    serverGUI.displayServerScreen("> Server disconnceted with " + ct.username + ".");
                     ct.closeStreams();
 		} catch (Exception e) {
                     serverGUI.displayToEventLog("Exception closing the server and clients: " + e);
@@ -133,6 +136,7 @@ public class Server {
                 // create output first
                 sOutput = new ObjectOutputStream(socket.getOutputStream());
 		sInput = new ObjectInputStream(socket.getInputStream());
+                
 		username = (String) sInput.readObject();
 		if (serverGUI != null) 
                     serverGUI.displayServerScreen("> " + username + " just connected.");
@@ -148,9 +152,7 @@ public class Server {
             date = new Date().toString();
 	}
         
-        public void run() {
-            listenForClients();
-	}
+     
         
 	/**
 	 * THE MAIN LISTENING LOOP
@@ -160,8 +162,10 @@ public class Server {
             ArrayList<byte[]> byteList = new ArrayList<byte[]>();
             while (true) {                       
                 try {
-                    System.out.println(networkMessage);
-                    networkMessage = (NetworkMessage) sInput.readObject();                   
+                    networkMessage = (NetworkMessage) sInput.readObject();
+                    
+                    
+                    
 		} catch (IOException e) {
                     if (this.socket.isClosed()) {
                         displayToServerLog(username + " connection has been terminated. " + e);
@@ -232,8 +236,7 @@ public class Server {
 	private void closeStreams() {
             try {
                 if (sOutput != null) {
-                    //True to close connection
-                    sOutput.writeBoolean(true);
+                  
                     sOutput.close();
                 }
             } 
