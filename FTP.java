@@ -1,94 +1,36 @@
+package abc;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;
+import java.util.Random;
 
-public class FTP extends JFrame {
-	public static File			KEYFILE;
-	public String[]				USERNAMES	= new String[] { "sdthomas92:f7d3f5ty2s:<password>" };
+public class FTP {
+	String[]					USERNAMES	= new String[] { "sdthomas92:f7d3f5ty2s:<password>" };
 	private static final String	key			= "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-	FTP(String k) {
-		this.KEYFILE = new File(k);
-		this.setSize(600, 80);
-		this.setLocationRelativeTo(null);
-		this.setDefaultCloseOperation(this.EXIT_ON_CLOSE);
-		this.setTitle("FTP Upload");
-		this.setResizable(false);
-		this.add(new FTPMainMenu(this));
-		this.setVisible(true);
+	public static File			keyFile		= new File("key.txt");													;
+	// ////
+	public static String verifyUsernameAndPassword(String username, String salt, String password) throws Exception {
+		byte[] hash = hash(password.getBytes("UTF-8"), salt.getBytes("UTF-8"));
+		String hashPassword = encodeBase64(hash);
+		String result = username + ":" + salt + ":" + hashPassword;
+		// Send result to the receiver, the receiver checks the USERNAMES array to
+		// see if the result matches with any of its contents. If so, the user is
+		// verified.
+		return result;
 	}
-	public static void main(String[] args) {
-		String k = "C:\\Users\\gabe\\SkyDrive\\Documents\\Gabriel.docx";
-		if (args.length != 0) {
-			k = args[0];
-		}
-		// SwingUtilities.invokeLater(new Runnable() {
-		// public void run() {
-		new FTP(k);
-		// }
-		// });
-	}
-	public class FTPMainMenu extends JPanel implements ActionListener {
-		private JFrame		frame;
-		private JButton		server;
-		private JButton		client;
-		private String		destanation, sender;
-		private JTextPane	text;
-		private String		host;
-		private int			portNumber;
-		private String		password;
-		FTPMainMenu(JFrame frame) {
-			password = "" + this.hashCode();
-			text = new JTextPane();
-			text.setEditable(false);
-			this.destanation = null;
-			this.sender = null;
-			this.frame = frame;
-			this.setLayout(new FlowLayout());
-			addButtons();
-			this.setVisible(true);
-		}
-		private void addButtons() {
-			client = new JButton("<html><font size=4>Client: File Transfer Protocol </html>");
-			client.addActionListener(this);
-			server = new JButton("<html><font size=4>Server: File Transfer Protocol");
-			server.addActionListener(this);
-			this.add(client);
-			this.add(server);
-			this.repaint();
-		}
-		public void actionPerformed(ActionEvent e) {
-			if (e.getSource() == this.client) {// act as sender
-				this.frame.dispose();
-				ClientGUI clientGUI = new ClientGUI("localhost", 23);// default value
-				Thread serverThread = new Thread() {
-					public void start() {
-						new ServerGUI(23, false);// default value will be changed if user decides to change it in the clintGUI class
-					}
-				};
-				serverThread.start();
-			} else if (e.getSource() == this.server) {
-				// act as reciever
-				this.frame.dispose();
-				ServerGUI serverGUI = new ServerGUI(23);
-				Thread clientThread = new Thread() {
-					public void start() {
-						new Client("localhost", 23, 3);// default value will be changed if user decides to change it in the clintGUI class
-					}
-				};
-				clientThread.start();
-			}
-		}
-	}
-
 	/**
 	 * Compares two byte arrays. If they are not equal, the method returns false, otherwise, it returns true.
 	 * 
@@ -103,49 +45,6 @@ public class FTP extends JFrame {
 		}
 		return true;
 	}
-	
-	
-	
-	/**
-	 * Converts a byte array to an integer. This method is used by the hashing algorithm in order to add multiple values together.
-	 * 
-	 * @param data
-	 * @return
-	 */
-	public static int byteArrayToInt(byte[] data) {
-		if (data.length != 4) return 0;
-		int counter = 31;
-		int result = 0;
-		for ( int i = 0 ; i < data.length ; i++) {
-			for ( int j = 7 ; j >= 0 ; j--) {
-				if (isBitOne(data[i], j)) result += Math.pow(2, counter);
-				counter--;
-			}
-		}
-		return result;
-	}
-	/**
-	 * This method determines if a certain bit in a byte is 0 or 1. This method is used by the byteArrayToInt method, which is used in the hash algorithm.
-	 * 
-	 * @param a
-	 * @param pos
-	 * @return
-	 */
-	public static boolean isBitOne(byte a, int pos) {
-		if ((int) (a >> pos) % 2 == 0) return false;
-		return true;
-	}
-	/**
-	 * This method prints out a byte array. It is used for debugging/testing, and won't be used in the final project.
-	 * 
-	 * @param b
-	 */
-	public static void printByteArray(byte[] b) {
-		for ( int i = 0 ; i < b.length ; i++)
-			System.out.println(Integer.toBinaryString(b[i] & 255 | 256).substring(1));
-	}
-	
-	
 	/**
 	 * This method can encrypt or decrypt byte arrays. If the input is in plaintext, the result will be ciphertext, and vice versa.
 	 * 
@@ -161,6 +60,18 @@ public class FTP extends JFrame {
 		for ( int i = 0 ; i < out.length ; i++)
 			out[i] = (byte) ((int) in[i] ^ (int) key[i % key.length]);
 		return out;
+	}
+	/**
+	 * This method converts a file into a byte array. This is used in the sending process, when the file to be sent and the key are converted into byte arrays.
+	 * 
+	 * @param f
+	 * @return
+	 * @throws Exception
+	 */
+	public static byte[] fileToByteArray(File f) throws Exception {
+		if (!f.exists()) return null;
+		Path p = Paths.get(f.getPath());
+		return Files.readAllBytes(p);
 	}
 	/**
 	 * This method uses a given byte array and salt (also a byte array) to generate a hash code. The hash code that's generated is four bytes long (32 bits).
@@ -206,18 +117,43 @@ public class FTP extends JFrame {
 		// System.out.println();
 		return result;
 	}
-	
 	/**
-	 * This method converts a file into a byte array. This is used in the sending process, when the file to be sent and the key are converted into byte arrays.
+	 * Converts a byte array to an integer. This method is used by the hashing algorithm in order to add multiple values together.
 	 * 
-	 * @param f
+	 * @param data
 	 * @return
-	 * @throws Exception
 	 */
-	public static byte[] fileToByteArray(File f) throws Exception {
-		if (!f.exists()) return null;
-		Path p = Paths.get(f.getPath());
-		return Files.readAllBytes(p);
+	public static int byteArrayToInt(byte[] data) {
+		if (data.length != 4) return 0;
+		int counter = 31;
+		int result = 0;
+		for ( int i = 0 ; i < data.length ; i++) {
+			for ( int j = 7 ; j >= 0 ; j--) {
+				if (isBitOne(data[i], j)) result += Math.pow(2, counter);
+				counter--;
+			}
+		}
+		return result;
+	}
+	/**
+	 * This method determines if a certain bit in a byte is 0 or 1. This method is used by the byteArrayToInt method, which is used in the hash algorithm.
+	 * 
+	 * @param a
+	 * @param pos
+	 * @return
+	 */
+	public static boolean isBitOne(byte a, int pos) {
+		if ((int) (a >> pos) % 2 == 0) return false;
+		return true;
+	}
+	/**
+	 * This method prints out a byte array. It is used for debugging/testing, and won't be used in the final project.
+	 * 
+	 * @param b
+	 */
+	public static void printByteArray(byte[] b) {
+		for ( int i = 0 ; i < b.length ; i++)
+			System.out.println(Integer.toBinaryString(b[i] & 255 | 256).substring(1));
 	}
 	/**
 	 * Default Constructor
@@ -238,12 +174,17 @@ public class FTP extends JFrame {
 			if (input.charAt(a) == '=') {
 				bitString.append((a + 1) == input.length() ? "000000" : "0000"); // Appends 6 zeros if there are two equals, and 4 zeros if there is one
 			} else {
-				bitString.append(byteToBits(((byte) key.indexOf(input.charAt(a))), 6));
+				bitString.append(toBits((key.indexOf(input.charAt(a))), 6));
 			}
 		}
-		decodedArray = new byte[bitString.length() / 8];
-		for ( int a = 0, b = 0 ; b < decodedArray.length ; a += 8, b++)
-			decodedArray[b] = (byte) bitsToChar(bitString.substring(a, a + 8), false);
+		decodedArray = new byte[bitString.length() / 8 - (input.indexOf('=') > 0 ? 1 : 0)];
+		for ( int a = 0, b = 0 ; b < decodedArray.length ; a += 8, b++) {
+			int tempValue = (int) bitsToChar(bitString.substring(a, a + 8), false);
+			if (tempValue > 127) {
+				tempValue -= 256;
+			}
+			decodedArray[b] = (byte) tempValue;
+		}
 		return decodedArray;
 	}
 	/**
@@ -257,8 +198,12 @@ public class FTP extends JFrame {
 		StringBuffer bitString = new StringBuffer(), // Bit string representation of the byte array
 		encodedString = new StringBuffer(); // Base64 representation of the byte array
 		/* Creates a bit string represenation of the byte array */
-		for ( byte b : input) {
-			bitString.append(byteToBits(b, 8));
+		for ( byte a : input) {
+			int temp = a;
+			if (temp < 0) {
+				temp = (a + 256);
+			}
+			bitString.append(toBits(temp, 8));
 		}
 		/* Appends zeroes so the bit string can be properly converted to Base64 */
 		while (bitString.length() % 6 != 0) {
@@ -283,7 +228,7 @@ public class FTP extends JFrame {
 	 *            length of the bit string
 	 * @return String bit string conversion of the input
 	 */
-	public static String byteToBits(byte input, int bitLength) {
+	private static String toBits(int input, int bitLength) {
 		StringBuffer output = new StringBuffer();
 		output.append(input & 1);
 		while (input > 0) {
@@ -309,7 +254,7 @@ public class FTP extends JFrame {
 	 *            Decides which conversion method to use
 	 * @return String the character representation of the bit string
 	 */
-	public static char bitsToChar(String bits, boolean isBase64) {
+	private static char bitsToChar(String bits, boolean isBase64) {
 		int value = 0;
 		int bitCount = isBase64 ? 6 : 8;
 		bits = reverseString(bits);
@@ -327,7 +272,7 @@ public class FTP extends JFrame {
 	 *            String to be reversed
 	 * @return String reversed string
 	 */
-	public static String reverseString(String input) {
+	private static String reverseString(String input) {
 		return new StringBuffer(input).reverse().toString();
 	}
 }

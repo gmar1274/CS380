@@ -1,3 +1,5 @@
+package abc;
+
 public class Base64Converter{
     /**
      * Used to convert a number into a Base64 character

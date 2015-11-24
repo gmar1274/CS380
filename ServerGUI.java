@@ -1,3 +1,5 @@
+package abc;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -99,7 +101,7 @@ public class ServerGUI extends JFrame implements ActionListener, WindowListener 
 			}
 			server = null;
 		}
-		FTP.main(null);
+		//FTP.main(null);
 	}
 	public void windowClosed(WindowEvent e) {}
 	public void windowOpened(WindowEvent e) {}

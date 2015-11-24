@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package encryption;
+package abc;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -123,7 +123,8 @@ public class Encryption {
         }
         catch (Exception e){
             System.out.println("File or key don't exist.");
-        }      
+        }
+		return byteList;      
     }
     
     /**
@@ -356,7 +357,7 @@ public class Encryption {
 	    decodedArray[b] = (byte)tempValue;
 	}
 	return decodedArray;
-
+    }
     /**
      * Encodes a byte array into a Base64 string
      * @param input the byte array to be converted
