@@ -173,7 +173,6 @@ public class Server {
                     break;
 		} catch (ClassNotFoundException e2) {
                     break;
-<<<<<<< HEAD
 		}
 		switch (networkMessage.getType()) {
                     // case NetworkMessage.MESSAGE:
@@ -227,61 +226,6 @@ public class Server {
                         }
                         break;
 		}
-=======
-		}
-		switch (networkMessage.getType()) {
-                    // case NetworkMessage.MESSAGE:
-                    // broadcast(username + ": " + networkMessage.getMessage());
-                    // break;
-                    case NetworkMessage.LOGOUT:
-                        displayToServerLog(username + " disconnected.");
-			this.closeStreams();
-			return;
-                    case NetworkMessage.UPLOADFILE:
-			byte[] fileByteArray = networkMessage.getByteArray();
-                        try {
-                            byte[] add = recieveFinishedDataPiece(fileByteArray, FTP.keyFile);
-                            if(add == null) {
-                                if (serverGUI != null)
-                                    serverGUI.displayServerScreen("> There was an error transferring the file.");
-                                else
-                                    System.out.println("> There was an error transferring the file.");
-                                break;
-                            }
-                            byteList.add(add);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-			if (serverGUI != null) 
-                            serverGUI.displayServerScreen("> File byte array: " + Arrays.toString(fileByteArray));
-                        else 
-                            System.out.println("> File byte array: " + Arrays.toString(fileByteArray));
-			break;
-                    case NetworkMessage.LASTPACKETSENT:
-                        byte[] fByteArray = networkMessage.getByteArray();
-			if (serverGUI != null) 
-                            serverGUI.displayServerScreen("> File byte array: " + Arrays.toString(fByteArray));
-                        else {
-                            System.out.println("> File byte array: " + Arrays.toString(fByteArray));
-                            System.out.println("> File has been succesfully recieved.");
-			}
-			writeToClientScreen(sdateFormat.format(new Date()) + " File successfully transfered.");
-                        try {
-                            //The program knows that this is the last packet to be received for this file
-                            //transfer. This packet contains an ecrypted byte array that represents the
-                            //file name of the file uploaded from the client.
-                            byteListToFile(byteList, 
-                                           new String(FTP.encryptDecrypt(fByteArray, 
-                                                                         FTP.fileToByteArray(FTP.keyFile)), 
-                                                      "UTF-8"));
-                            byteList.clear();
-                        }
-                        catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                        break;
-		}
->>>>>>> origin/master
             }
             closeStreams();
 	}
