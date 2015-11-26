@@ -1,5 +1,4 @@
-package ftp;
-
+package abc;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GridLayout;
@@ -142,7 +141,7 @@ public class ClientGUI extends JFrame implements ActionListener, WindowListener 
 				return;
 			}
 			// try creating a new Client with GUI
-			client = new Client(server, this.portNumber, username, this, 3);
+			client = new Client(server, username,null, this.portNumber, 3,null);
 			// test if we can start the Client
 			if (!client.start()) return;
 			setStateOfLabelsTo(false);
@@ -172,7 +171,7 @@ public class ClientGUI extends JFrame implements ActionListener, WindowListener 
 			}
 			client = null;
 		}
-		 FTP.main(null);
+		//FTP.main(null);
 	}
 	public void windowClosed(WindowEvent e) {}
 	public void windowOpened(WindowEvent e) {}

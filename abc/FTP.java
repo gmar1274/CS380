@@ -1,4 +1,4 @@
-package ftp;
+package abc;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -17,90 +17,13 @@ import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;
 import java.util.Random;
 
-public class FTP extends JFrame {
-	public static String[]		USERNAMES	= new String[] { "sdthomas92:f7d3f5ty2s:a5+w9A==" };
+public class FTP {
+	String[]					USERNAMES	= new String[] { "sdthomas92:f7d3f5ty2s:<password>" };
 	private static final String	key			= "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-	public static File			keyFile;
-	FTP() {
-		keyFile = new File("key.txt");
-		this.setSize(600, 80);
-		this.setLocationRelativeTo(null);
-		this.setDefaultCloseOperation(this.EXIT_ON_CLOSE);
-		this.setTitle("FTP Upload");
-		this.setResizable(false);
-		this.add(new FTPMainMenu(this));
-		this.setVisible(true);
-	}
-	public static void main(String[] args) {
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
-				new FTP();
-			}
-		});/*
-			 * Random rdm = new Random(); byte[] test1 = new byte[1399]; for(int i = 0; i < test1.length; i++) test1[i] = (byte)rdm.nextInt(100);
-			 * System.out.println(Arrays.toString(test1)); String encode = encodeBase64(test1); byte[] middleMan = encode.getBytes(Charset.forName("UTF-8"));
-			 * byte[] test2 = decodeBase64(new String(middleMan, "UTF-8")); System.out.println(Arrays.toString(test2));
-			 */
-		// System.out.println(verifyUsernameAndPassword("sdthomas92", "f7d3f5ty2s", "12345"));
-	}
-	public class FTPMainMenu extends JPanel implements ActionListener {
-		private JFrame		frame;
-		private JButton		server;
-		private JButton		client;
-		private String		destanation, sender;
-		private JTextPane	text;
-		private String		host;
-		private int			portNumber;
-		private String		password;
-		FTPMainMenu(JFrame frame) {
-			password = "" + this.hashCode();
-			text = new JTextPane();
-			text.setEditable(false);
-			this.destanation = null;
-			this.sender = null;
-			this.frame = frame;
-			this.setLayout(new FlowLayout());
-			addButtons();
-			this.setVisible(true);
-		}
-		private void addButtons() {
-			client = new JButton("<html><font size=4>Client: File Transfer Protocol </html>");
-			client.addActionListener(this);
-			server = new JButton("<html><font size=4>Server: File Transfer Protocol");
-			server.addActionListener(this);
-			this.add(client);
-			this.add(server);
-			this.repaint();
-		}
-		public void actionPerformed(ActionEvent e) {
-			if (e.getSource() == this.client) {// act as sender
-				this.frame.dispose();
-				ClientGUI clientGUI = new ClientGUI("localhost", 23);// default value
-				Thread serverThread = new Thread() {
-					public void start() {
-						new ServerGUI(23, false);// default value will be changed if user decides to change it in the clintGUI class
-					}
-				};
-				serverThread.start();
-			} else if (e.getSource() == this.server) {
-				// act as reciever
-				this.frame.dispose();
-				ServerGUI serverGUI = new ServerGUI(23);
-				Thread clientThread = new Thread() {
-					public void start() {
-						new Client("localhost", 23, 3);// default value will be changed if user decides to change it in the clintGUI class
-					}
-				};
-				clientThread.start();
-			}
-		}
-	}
+	public static File			keyFile		= new File("key.txt");													;
 	// ////
-	public static String verifyUsernameAndPassword(String username, String salt, String password) {
-		byte[] hash = new byte[4];
-		try {
-			hash = hash(password.getBytes("UTF-8"), salt.getBytes("UTF-8"), true);
-		} catch (Exception e) {}
+	public static String verifyUsernameAndPassword(String username, String salt, String password) throws Exception {
+		byte[] hash = hash(password.getBytes("UTF-8"), salt.getBytes("UTF-8"),true);
 		String hashPassword = encodeBase64(hash);
 		String result = username + ":" + salt + ":" + hashPassword;
 		// Send result to the receiver, the receiver checks the USERNAMES array to
