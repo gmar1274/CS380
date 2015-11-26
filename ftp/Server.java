@@ -1,4 +1,4 @@
-package abc;
+package ftp;
 
 import java.io.*;
 import java.net.*;
@@ -225,6 +225,22 @@ public class Server {
                             e.printStackTrace();
                         }
                         break;
+                    case NetworkMessage.LOGIN:
+                        byte[] login = networkMessage.getByteArray();
+                        try {
+                            String loginInfo = new String(FTP.encryptDecrypt(login, FTP.fileToByteArray(FTP.keyFile)), "UTF-8");
+                            boolean allowUser = false;
+                            for(int i = 0; i < FTP.USERNAMES.length; i++) {
+                                if(loginInfo.equals(FTP.USERNAMES[i])) {
+                                    allowUser = true;
+                                    break;
+                                }
+                            }
+                            //if(!allowUser)
+                                //DISCONNECT FROM CLIENT
+                        }
+                        catch (Exception e) {}
+                        
 		}
             }
             closeStreams();
@@ -295,7 +311,7 @@ public class Server {
             //If the hash included with the chunk does not equal the hashed version
             //of the finished data, then the file was sent incorrectly, and null
             //is returned.
-            if(!FTP.compareByteArrays(FTP.hash(finishedData, FTP.fileToByteArray(key)), 
+            if(!FTP.compareByteArrays(FTP.hash(finishedData, FTP.fileToByteArray(key), true), 
                                   hash)) {
                 
                 //System.out.println("FAILED. finishedData = " + Arrays.toString(decode));

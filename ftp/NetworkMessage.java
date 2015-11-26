@@ -1,5 +1,3 @@
-package abc;
-
 import java.io.*;
 
 /*
@@ -11,10 +9,15 @@ public class NetworkMessage implements Serializable {
 	// The different types of message sent by the Client
 	// MESSAGE an ordinary message
 	// LOGOUT to disconnect from the Server
-	static final int			ERROR=-1 , UPLOADFILE			= 0, MESSAGE = 1, LOGOUT = 2, LASTPACKETSENT=3;
-	private int					type;
+	static final int ERROR = -1 , 
+                         UPLOADFILE = 0, 
+                         MESSAGE = 1, 
+                         LOGOUT = 2, 
+                         LASTPACKETSENT = 3,
+                         LOGIN = 4;
+	private int type;
 	private byte[] fileArray;
-	private String				message;
+	private String message;
 	NetworkMessage(int type){//for logout
 		this.type = type;
 	}
