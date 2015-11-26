@@ -18,13 +18,13 @@ import javax.swing.SwingConstants;
  * The Client with its GUI
  */
 public class ClientGUI extends JFrame implements ActionListener, WindowListener {
-	private static final long	serialVersionUID	= 1L;
+	private static final long serialVersionUID = 1L;
 	// will first hold "Username:", later on "Enter message"
-	private JLabel				label;
+	private JLabel label;
 	// to hold the Username and later on the messages
-	private JTextField			textField;
+	private JTextField textField;
 	// to hold the server address an the port number
-	private JTextField			textFieldServer, textFieldPort;
+	private JTextField textFieldServer, textFieldPort;
 	// to Logout and get the list of the users
 	private JButton				login, logout, uploadFile;
 	// for the chat room
@@ -142,7 +142,10 @@ public class ClientGUI extends JFrame implements ActionListener, WindowListener 
 			// try creating a new Client with GUI
 			client = new Client(server, this.portNumber, username, this, 3);
 			// test if we can start the Client
-			if (!client.start()) return;
+			
+                        if (!client.start()) 
+                            return;
+                        
 			setStateOfLabelsTo(false);
 			connected = true;
 			// disable login button
