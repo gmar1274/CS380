@@ -1,3 +1,5 @@
+package ftp;
+
 import static ftp.FTP.encodeBase64;
 import static ftp.FTP.hash;
 import java.lang.reflect.Array;
@@ -64,6 +66,7 @@ public class Client {
 		return false;
             }
             // creates the Thread to listen from the server
+            System.out.println("HERE");
             new ListenFromServer().start();
             try {
                 sOutput.writeObject(username);
