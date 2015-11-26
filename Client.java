@@ -1,5 +1,3 @@
-package ftp;
-
 import static ftp.FTP.encodeBase64;
 import static ftp.FTP.hash;
 import java.lang.reflect.Array;
