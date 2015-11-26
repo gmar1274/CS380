@@ -18,7 +18,9 @@ import java.util.Random;
 
 public class FTP extends JFrame {
     
-    public static String[] USERNAMES = new String[]{"sdthomas92:f7d3f5ty2s:a5+w9A=="};
+    public static String[] USERNAMES = new String[]{"stephen:f7d3f5ty2s:BdqU9A==",
+                                                    "gabriel:g8fHJBf84K:lTLs7A==",
+                                                    "ervin:7ffIr90Ewc:V7G4+A=="};
     private static final String key = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     public static File keyFile;
     
@@ -37,23 +39,9 @@ public class FTP extends JFrame {
                 public void run() {
                     new FTP();
                 }
-            });/*
-            Random rdm = new Random();
-            byte[] test1 = new byte[1399];
-            for(int i = 0; i < test1.length; i++)
-                test1[i] = (byte)rdm.nextInt(100);
-            System.out.println(Arrays.toString(test1));
+            });
             
-            
-            
-            String encode = encodeBase64(test1);
-            
-            byte[] middleMan = encode.getBytes(Charset.forName("UTF-8"));
-            
-            byte[] test2 = decodeBase64(new String(middleMan, "UTF-8"));
-            System.out.println(Arrays.toString(test2));         */
-            
-            //System.out.println(verifyUsernameAndPassword("sdthomas92", "f7d3f5ty2s", "12345"));
+            //System.out.println(verifyUsernameAndPassword("ervin", "", "12345"));
 	}
 	public class FTPMainMenu extends JPanel implements ActionListener {
 		private JFrame		frame;
@@ -191,7 +179,7 @@ public class FTP extends JFrame {
         for(int i = 0; i < salt.length; i++) {
             //Performs the actual hash algorithm multiple times (hashes
             //the hashed byte array again).
-            byte[] temp = innerHash(data, salt[(i+i)%2], functional);
+            byte[] temp = innerHash(data, salt[i], functional);
             for(int j = 0; j < data.length; j++)
                 data[j] = temp[j % temp.length];
         }
@@ -279,7 +267,7 @@ public class FTP extends JFrame {
      * @param input A Base64 encoded string
      * @return byte[] The byte equivalent of the Base64 string
      */
-public static byte[] decodeBase64(String input){ 
+    public static byte[] decodeBase64(String input){ 
 	
 	/*Throws exception if the string isn't a valid Base64String*/
 	if(input.length() % 4 != 0){
